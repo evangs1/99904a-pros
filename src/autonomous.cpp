@@ -1,5 +1,4 @@
-#include "main.h"
-
+#include "define.cpp"
 /**
  * Runs the user autonomous code. This function will be started in its own task
  * with the default priority and stack size whenever the robot is enabled via

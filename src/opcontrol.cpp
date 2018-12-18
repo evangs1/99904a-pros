@@ -1,5 +1,6 @@
-#include "main.h"
-#include "pros/motors.hpp"
+
+#include <iostream>
+#include "define.hpp"
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -19,26 +20,15 @@
  * Motor Definition Section
  */
 
-#define DRIVE_RIGHT_FRONT_PORT 1
-#define DRIVE_RIGHT_BACK_PORT 3
-#define DRIVE_LEFT_FRONT_PORT 2
-#define DRIVE_LEFT_BACK_PORT 4
-#define INTAKE_PORT 7
+
+
 
 void opcontrol() {
-	pros::Controller master(pros::E_CONTROLLER_MASTER);
 
-	pros::Motor driveRightFront(DRIVE_RIGHT_FRONT_PORT, pros::E_MOTOR_GEARSET_18, false);
-	pros::Motor driveRightBack(DRIVE_RIGHT_BACK_PORT, pros::E_MOTOR_GEARSET_18, false);
-	pros::Motor driveLeftFront(DRIVE_LEFT_FRONT_PORT, pros::E_MOTOR_GEARSET_18, true);
-	pros::Motor driveLeftBack(DRIVE_LEFT_BACK_PORT, pros::E_MOTOR_GEARSET_18, true);
-	pros::Motor intake(INTAKE_PORT);
 
 	while (true) {
-		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
-		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
-		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);
-
+		//pros::lcd::print("potentiometer: %d", potCatapult.get_value());
+		std::cout << "Pot value: " << potCatapult.get_value() << std::endl;
 		int turn = master.get_analog(ANALOG_LEFT_X);
 		int power = master.get_analog(ANALOG_LEFT_Y);
 		int left = power + turn;
