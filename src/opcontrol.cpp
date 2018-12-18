@@ -1,4 +1,5 @@
 #include "main.h"
+#include "pros/motors.hpp"
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -26,10 +27,11 @@
 
 void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::Motor driveRightFront(DRIVE_RIGHT_FRONT_PORT);
-	pros::Motor driveRightBack(DRIVE_RIGHT_BACK_PORT);
-	pros::Motor driveLeftFront(DRIVE_LEFT_FRONT_PORT);
-	pros::Motor driveLeftBack(DRIVE_LEFT_BACK_PORT);
+
+	pros::Motor driveRightFront(DRIVE_RIGHT_FRONT_PORT, pros::E_MOTOR_GEARSET_18, false);
+	pros::Motor driveRightBack(DRIVE_RIGHT_BACK_PORT, pros::E_MOTOR_GEARSET_18, false);
+	pros::Motor driveLeftFront(DRIVE_LEFT_FRONT_PORT, pros::E_MOTOR_GEARSET_18, true);
+	pros::Motor driveLeftBack(DRIVE_LEFT_BACK_PORT, pros::E_MOTOR_GEARSET_18, true);
 	pros::Motor intake(INTAKE_PORT);
 
 	while (true) {
@@ -37,8 +39,8 @@ void opcontrol() {
 		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
 		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);
 
+		int turn = master.get_analog(ANALOG_LEFT_X);
 		int power = master.get_analog(ANALOG_LEFT_Y);
-		int turn = master.get_analog(ANALOG_RIGHT_X);
 		int left = power + turn;
 		int right = power - turn;
 		driveRightFront.move(right);
