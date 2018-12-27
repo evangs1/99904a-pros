@@ -24,22 +24,18 @@
 
 void catapultAutomation(void* param) {
 	bool catapultIsPrimed = false;
-   //std::cout << "Hello" << (char*)param << std::endl;
    while (true) {
-      //std::cout << potCatapult.get_value() << std::endl;
-      pros::delay(20);
+		catapultIsPrimed = !(potCatapult.get_value() < 3100);
       if (!catapultIsPrimed) {
-         while (potCatapult.get_value() < 3100) {
-            catapult.move(100);
-         }
-         catapult.move(0);
-         catapult.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-         catapultIsPrimed = true;
+			catapult.move(127);
       }
+		if(catapultIsPrimed) {
+			catapult.move(0);
+			catapult.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+		}
       if(master.get_digital(DIGITAL_L2) && catapultIsPrimed) {
-         catapult.move(100);
+			catapult.move(127);
          pros::delay(400);
-         catapultIsPrimed = false;
       }
       pros::delay(20);
 	}
@@ -49,9 +45,7 @@ void opcontrol() {
 	pros::Task task_catapult_automation(catapultAutomation);
 
 	while (true) {
-		//irrelevant drive code
    	//pros::lcd::print("potentiometer: %d", potCatapult.get_value());
-
 		int turn = master.get_analog(ANALOG_LEFT_X);
 		int power = master.get_analog(ANALOG_LEFT_Y);
 		int left = power + turn;
