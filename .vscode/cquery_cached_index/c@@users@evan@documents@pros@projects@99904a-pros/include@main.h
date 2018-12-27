@@ -40,9 +40,13 @@
 #define DRIVE_RIGHT_BACK_PORT 3
 #define DRIVE_LEFT_FRONT_PORT 2
 #define DRIVE_LEFT_BACK_PORT 4
+
+#define STRAFE_PORT 5
+
 #define INTAKE_PORT 7
 #define CATAPULT_PORT 8
 #define POT_CATAPULT_PORT 2
+#define GYRO_PORT 7
 //#include "define.hpp"
 /**
  * You should add more #includes here

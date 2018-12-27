@@ -23,9 +23,8 @@
 
 
 void catapultAutomation(void* param) {
-	bool catapultIsPrimed = false;
+	bool catapultIsPrimed = true;
    while (true) {
-		catapultIsPrimed = !(potCatapult.get_value() < 3100);
       if (!catapultIsPrimed) {
 			catapult.move(127);
       }
@@ -37,11 +36,14 @@ void catapultAutomation(void* param) {
 			catapult.move(127);
          pros::delay(400);
       }
+		catapultIsPrimed = !(potCatapult.get_value() < 3100);
       pros::delay(20);
 	}
 }
 
+
 void opcontrol() {
+
 	pros::Task task_catapult_automation(catapultAutomation);
 
 	while (true) {
@@ -50,14 +52,19 @@ void opcontrol() {
 		int power = master.get_analog(ANALOG_LEFT_Y);
 		int left = power + turn;
 		int right = power - turn;
+		//change to move_velocity?
 		driveRightFront.move(right);
 		driveRightBack.move(right);
 		driveLeftFront.move(left);
 		driveLeftBack.move(left);
 
+		std::cout << gyro.get() << std::endl;
+
+		strafe.move(master.get_analog(ANALOG_RIGHT_X));
+
 		if (master.get_digital(DIGITAL_R1)) {
 			intake.move_velocity(600);
-			std::cout << "Hello"  << std::endl; // This is 100 because it's a 100rpm motor
+			// This is 100 because it's a 100rpm motor
 		}
 		else if (master.get_digital(DIGITAL_R2)) {
 			intake.move_velocity(-600);
@@ -65,6 +72,11 @@ void opcontrol() {
 		else {
 			intake.move_velocity(0);
 		}
+
+		if(master.get_digital_new_press(DIGITAL_Y)) {
+			autonomous();
+		}
+
 		pros::delay(20);
 	}
 }

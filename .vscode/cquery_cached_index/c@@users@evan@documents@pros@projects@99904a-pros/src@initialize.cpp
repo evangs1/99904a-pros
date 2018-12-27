@@ -46,7 +46,8 @@ void catapultAutomation(void* param) {
 
 void initialize() {
    pros::lcd::initialize();
-
+   okapi::ADIGyro gyro(GYRO_PORT, 1);
+	pros::delay(1400);
    std::string text("PROS");
 	//pros::Task my_task(my_task_fn, &text);
    //pros::Task task_catapult_automation(catapultAutomation, &text);
