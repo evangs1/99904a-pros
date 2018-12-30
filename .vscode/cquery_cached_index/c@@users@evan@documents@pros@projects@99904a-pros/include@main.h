@@ -79,7 +79,6 @@ void initialize(void);
 void disabled(void);
 void competition_initialize(void);
 void opcontrol(void);
-//void catapultAutomation(void* param);
 #ifdef __cplusplus
 }
 #endif

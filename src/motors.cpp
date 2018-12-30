@@ -6,7 +6,7 @@
 
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 pros::ADIAnalogIn potCatapult(POT_CATAPULT_PORT);
-okapi::ADIGyro gyro(GYRO_PORT, 1);
+okapi::ADIGyro gyro(GYRO_PORT, 0.9281);
 
 //Motor Setup
 pros::Motor driveRightFront(DRIVE_RIGHT_FRONT_PORT, pros::E_MOTOR_GEARSET_18, false);
