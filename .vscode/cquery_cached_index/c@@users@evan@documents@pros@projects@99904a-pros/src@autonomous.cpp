@@ -3,6 +3,7 @@
 #include "global.h"
 #endif
 #include "okapi/api.hpp"
+#include "MiniPID.h"
 
 using namespace okapi::literals;
 /**
@@ -42,8 +43,8 @@ void autonomous() {
    //double tunerOutput;
    //auto tuner = okapi::PIDTunerFactory::create(0, tunerOutput, 4000_ms, 900, 0.0001, 0.1, 0, 1, 0.00001, 0.1, 10, 16);
 
-   
 
+/*
    auto gyroTurnController = okapi::IterativeControllerFactory::posPID(0.0018, 0.0, 1000, 0, std::make_unique<okapi::AverageFilter<3>>());
 
    //configure motors
@@ -69,6 +70,31 @@ void autonomous() {
 
       pros::delay(10);
    }
+*/
+
+
+   MiniPID pid = MiniPID(0.21, 0.000, 0.5);
+   pid.setOutputLimits(-127, 127);
+   pid.setMaxIOutput(30);
+   pid.setSetpointRange(900);
+
+   double target = 900;
+   int iterations = 0;
+
+   while(iterations < 2000) {
+      double output = pid.getOutput(gyro.get() / 1.075, target);
+      driveRightFront.move(-output);
+      driveRightBack.move(-output);
+      driveLeftFront.move(output);
+      driveLeftBack.move(output);
+      pros::delay(10);
+      std::cout << gyro.get() << std::endl;
+      pros::lcd::print(0, "Gyro: %f\n", (gyro.get() / 1.075) -900);
+      pros::lcd::print(1, "PID : %f\n", output);
+      iterations = iterations + 10;
+   }
+
+
 
 
 
