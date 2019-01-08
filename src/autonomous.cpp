@@ -17,6 +17,76 @@ using namespace okapi::literals;
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
+void turnPID (double target) {
+  MiniPID pid = MiniPID(0.21, 0.000, 0.5);
+  pid.setOutputLimits(-127, 127);
+  pid.setMaxIOutput(30);
+  pid.setSetpointRange(900);
+
+  //reset the gyro value
+  gyro.reset();
+
+  //double target = 900;
+  int iterations = 0;
+
+  while(iterations < 2000) {
+     std::cout << driveRightFront.get_actual_velocity() << std::endl;
+     double output = pid.getOutput(gyro.get() / 1.075, target);
+     driveRightFront.move(-output);
+     driveRightBack.move(-output);
+     driveLeftFront.move(output);
+     driveLeftBack.move(output);
+     pros::delay(10);
+     if(driveRightFront.get_actual_velocity() == 0 && iterations > 30) {
+        break;
+     }
+     pros::lcd::print(0, "Gyro: %f\n", (gyro.get() / 1.075) -900);
+     pros::lcd::print(1, "PID : %f\n", output);
+     iterations = iterations + 10;
+
+
+  }
+}
+
+
+
+
+
+void drivePID (double target) {
+   int bias = 14;
+  MiniPID pid = MiniPID(0.21, 0.000, 0.5);
+  pid.setOutputLimits(-127, 127);
+  pid.setMaxIOutput(30);
+  pid.setSetpointRange(900);
+
+
+  driveRightFront.tare_position();
+  driveRightBack.tare_position();
+  driveLeftFront.tare_position();
+  driveLeftBack.tare_position();
+
+  //double target = 900;
+  int iterations = 0;
+  float motorEncoderAverage;
+  while(iterations < 4000) {
+     motorEncoderAverage = (driveRightFront.get_position() + driveRightBack.get_position() + driveLeftFront.get_position() + driveLeftBack.get_position()) / 4;
+     double output = pid.getOutput(motorEncoderAverage, target + bias);
+     driveRightFront.move(output);
+     driveRightBack.move(output);
+     driveLeftFront.move(output);
+     driveLeftBack.move(output);
+     pros::delay(10);
+     if(driveRightFront.get_actual_velocity() == 0 && iterations > 30) {
+        break;
+     }
+     iterations = iterations + 10;
+
+
+  }
+  pros::lcd::print(1, "PID : %f\n", motorEncoderAverage);
+}
+
+
 void autonomous() {
    /*
    okapi::ChassisControllerPID driveChassis = okapi::ChassisControllerFactory::create(
@@ -72,7 +142,7 @@ void autonomous() {
    }
 */
 
-
+/*
    MiniPID pid = MiniPID(0.21, 0.000, 0.5);
    pid.setOutputLimits(-127, 127);
    pid.setMaxIOutput(30);
@@ -93,9 +163,9 @@ void autonomous() {
       pros::lcd::print(1, "PID : %f\n", output);
       iterations = iterations + 10;
    }
-
-
-
+*/
+//turnPID(900);
+drivePID(1000);
 
 
 }

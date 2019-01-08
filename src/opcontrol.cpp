@@ -58,7 +58,7 @@ void opcontrol() {
 		driveLeftFront.move(left);
 		driveLeftBack.move(left);
 
-		std::cout << gyro.get() << std::endl;
+	//	std::cout << gyro.get() << std::endl;
 
 		strafe.move(master.get_analog(ANALOG_RIGHT_X));
 
