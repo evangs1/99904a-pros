@@ -31,7 +31,7 @@ void turnPID (double target) {
 
   while(iterations < 2000) {
      std::cout << driveRightFront.get_actual_velocity() << std::endl;
-     double output = pid.getOutput(gyro.get() / 1.075, target);
+     double output = pid.getOutput(gyro.get(), target);
      driveRightFront.move(-output);
      driveRightBack.move(-output);
      driveLeftFront.move(output);
@@ -40,7 +40,7 @@ void turnPID (double target) {
      if(driveRightFront.get_actual_velocity() == 0 && iterations > 30) {
         break;
      }
-     pros::lcd::print(0, "Gyro: %f\n", (gyro.get() / 1.075) -900);
+     pros::lcd::print(0, "Gyro: %f\n", (gyro.get()) -900);
      pros::lcd::print(1, "PID : %f\n", output);
      iterations = iterations + 10;
 
@@ -53,11 +53,23 @@ void turnPID (double target) {
 
 
 void drivePID (double target) {
-   int bias = 14;
-  MiniPID pid = MiniPID(0.21, 0.000, 0.5);
-  pid.setOutputLimits(-127, 127);
-  pid.setMaxIOutput(30);
-  pid.setSetpointRange(900);
+  int leftBias = 25;
+  int rightBias = 0;
+  if (target < 0) {
+     leftBias = leftBias * -1;
+     rightBias = rightBias * -1;
+  }
+
+  MiniPID leftPID = MiniPID(0.21, 0.000, 0.5);
+  leftPID.setOutputLimits(-127, 127);
+  leftPID.setMaxIOutput(30);
+  leftPID.setSetpointRange(900);
+
+
+  MiniPID rightPID = MiniPID(0.24, 0.000, 0.6);
+  rightPID.setOutputLimits(-127, 127);
+  rightPID.setMaxIOutput(30);
+  rightPID.setSetpointRange(900);
 
 
   driveRightFront.tare_position();
@@ -70,11 +82,12 @@ void drivePID (double target) {
   float motorEncoderAverage;
   while(iterations < 4000) {
      motorEncoderAverage = (driveRightFront.get_position() + driveRightBack.get_position() + driveLeftFront.get_position() + driveLeftBack.get_position()) / 4;
-     double output = pid.getOutput(motorEncoderAverage, target + bias);
-     driveRightFront.move(output);
-     driveRightBack.move(output);
-     driveLeftFront.move(output);
-     driveLeftBack.move(output);
+     double leftOutput = leftPID.getOutput(motorEncoderAverage, target + leftBias);
+     double rightOutput = rightPID.getOutput(motorEncoderAverage, target + rightBias);
+     driveRightFront.move(rightOutput);
+     driveRightBack.move(rightOutput);
+     driveLeftFront.move(leftOutput);
+     driveLeftBack.move(leftOutput);
      pros::delay(10);
      if(driveRightFront.get_actual_velocity() == 0 && iterations > 30) {
         break;
@@ -88,21 +101,24 @@ void drivePID (double target) {
 
 
 void autonomous() {
-   /*
+/*
    okapi::ChassisControllerPID driveChassis = okapi::ChassisControllerFactory::create(
       {-DRIVE_LEFT_BACK_PORT, -DRIVE_LEFT_FRONT_PORT}, {DRIVE_RIGHT_BACK_PORT, DRIVE_RIGHT_FRONT_PORT},
-      okapi::IterativePosPIDController::Gains{0.0028, 0, 10},
-      okapi::IterativePosPIDController::Gains{0.0025, 0, 20},
+      okapi::IterativePosPIDController::Gains{0.0028, 0, 0, 1},
+      okapi::IterativePosPIDController::Gains{0.0028, 0, 0},
       okapi::AbstractMotor::gearset::green
    );
-   */
+
 
    //pros::lcd::initialize();
-
-   //driveChassis.moveDistance(1000);
-   //pros::lcd::print(0, "After: %f", driveRightFront.get_position());
+   driveRightFront.tare_position();
+   driveRightBack.tare_position();
+   driveLeftFront.tare_position();
+   driveLeftBack.tare_position();
+   driveChassis.moveDistance(1000);
+   pros::lcd::print(0, "After: %f", driveRightFront.get_position());
    //std::cout << driveRightFront.get_position()  << std::endl;
-
+*/
    /*
    okapi::ADIGyro gyro(GYRO_PORT, 1);
    auto controller = okapi::AsyncControllerFactory::posPID({-DRIVE_LEFT_BACK_PORT, -DRIVE_LEFT_FRONT_PORT, -DRIVE_RIGHT_BACK_PORT, -DRIVE_RIGHT_FRONT_PORT}, gyro, 100000000000, 1, 0.005);
@@ -165,7 +181,27 @@ void autonomous() {
    }
 */
 //turnPID(900);
-drivePID(1000);
+drivePID(3200);
+intake.move(-127);
+pros::delay(100);
+drivePID(-2500);
+intake.move(0);
+
+turnPID(1800);
+catapult.move(127);
+pros::delay(400);
+catapult.move(0);
+turnPID(900+420);
+intake.move(127);
+drivePID(2000);
+pros::delay(300);
+intake.move(0);
+drivePID(-2000);
+pros::delay(500);
+turnPID(500);
+drivePID(2000);
+
+
 
 
 }
