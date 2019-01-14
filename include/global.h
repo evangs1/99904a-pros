@@ -12,3 +12,10 @@ extern pros::Motor strafe;
 
 extern pros::Motor intake;
 extern pros::Motor catapult;
+
+
+
+extern double gyroCurrent;
+extern double gyroLast;
+extern float gyroOutput;
+extern float diff;

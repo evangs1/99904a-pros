@@ -17,6 +17,33 @@ using namespace okapi::literals;
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
+
+
+
+
+ void gyroadj(void* param) {
+ 	gyroCurrent = gyro.get();
+ 	gyroLast = gyro.get();
+    while (true) {
+ 		 gyroCurrent = gyro.get();
+ 		 diff = gyroCurrent - gyroLast;
+ 		 gyroLast = gyroCurrent;
+     if (abs(diff) < 100) {
+       gyroOutput = gyroOutput + diff;
+     }
+
+ 		 std::cout << gyro.get() << "    " << gyroOutput << std::endl;
+      pros::delay(1);
+ 		 if(master.get_digital_new_press(DIGITAL_B)) {
+  			gyroOutput = 0;
+  		}
+ 	}
+ }
+
+
+
+
+
 void turnPID (double target) {
   MiniPID pid = MiniPID(0.21, 0.000, 0.5);
   pid.setOutputLimits(-127, 127);
@@ -24,14 +51,15 @@ void turnPID (double target) {
   pid.setSetpointRange(900);
 
   //reset the gyro value
-  gyro.reset();
+  //gyro.reset();
+  gyroOutput = 0;
 
   //double target = 900;
   int iterations = 0;
 
   while(iterations < 2000) {
-     std::cout << driveRightFront.get_actual_velocity() << std::endl;
-     double output = pid.getOutput(gyro.get(), target);
+     //std::cout << driveRightFront.get_actual_velocity() << std::endl;
+     double output = pid.getOutput(gyroOutput, target);
      driveRightFront.move(-output);
      driveRightBack.move(-output);
      driveLeftFront.move(output);
@@ -180,7 +208,8 @@ void autonomous() {
       iterations = iterations + 10;
    }
 */
-//turnPID(900);
+//the following block is the current iteration of auton
+/*
 drivePID(3200);
 intake.move(-127);
 pros::delay(100);
@@ -200,8 +229,14 @@ drivePID(-2000);
 pros::delay(500);
 turnPID(500);
 drivePID(2000);
+*/
+pros::Task task_gyroadj(gyroadj);
 
-
-
+turnPID(1800);
+drivePID(1000);
+turnPID(1800);
+drivePID(1000);
+turnPID(1800);
+drivePID(1000);
 
 }

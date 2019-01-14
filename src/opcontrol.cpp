@@ -42,6 +42,9 @@ void catapultAutomation(void* param) {
 }
 
 
+
+
+
 void opcontrol() {
 
 	pros::Task task_catapult_automation(catapultAutomation);
