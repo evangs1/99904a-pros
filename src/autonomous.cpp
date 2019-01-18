@@ -34,9 +34,7 @@ using namespace okapi::literals;
 
  		 std::cout << gyro.get() << "    " << gyroOutput << std::endl;
       pros::delay(1);
- 		 if(master.get_digital_new_press(DIGITAL_B)) {
-  			gyroOutput = 0;
-  		}
+
  	}
  }
 
@@ -59,7 +57,7 @@ void turnPID (double target) {
 
   while(iterations < 2000) {
      //std::cout << driveRightFront.get_actual_velocity() << std::endl;
-     double output = pid.getOutput(gyroOutput, target);
+     double output = pid.getOutput(gyroOutput / 1.075, target);
      driveRightFront.move(-output);
      driveRightBack.move(-output);
      driveLeftFront.move(output);
@@ -129,86 +127,11 @@ void drivePID (double target) {
 
 
 void autonomous() {
-/*
-   okapi::ChassisControllerPID driveChassis = okapi::ChassisControllerFactory::create(
-      {-DRIVE_LEFT_BACK_PORT, -DRIVE_LEFT_FRONT_PORT}, {DRIVE_RIGHT_BACK_PORT, DRIVE_RIGHT_FRONT_PORT},
-      okapi::IterativePosPIDController::Gains{0.0028, 0, 0, 1},
-      okapi::IterativePosPIDController::Gains{0.0028, 0, 0},
-      okapi::AbstractMotor::gearset::green
-   );
 
 
-   //pros::lcd::initialize();
-   driveRightFront.tare_position();
-   driveRightBack.tare_position();
-   driveLeftFront.tare_position();
-   driveLeftBack.tare_position();
-   driveChassis.moveDistance(1000);
-   pros::lcd::print(0, "After: %f", driveRightFront.get_position());
-   //std::cout << driveRightFront.get_position()  << std::endl;
-*/
-   /*
-   okapi::ADIGyro gyro(GYRO_PORT, 1);
-   auto controller = okapi::AsyncControllerFactory::posPID({-DRIVE_LEFT_BACK_PORT, -DRIVE_LEFT_FRONT_PORT, -DRIVE_RIGHT_BACK_PORT, -DRIVE_RIGHT_FRONT_PORT}, gyro, 100000000000, 1, 0.005);
+pros::Task task_gyroadj(gyroadj);
 
-   controller.setTarget(400);
-   controller.waitUntilSettled();
-*/
-   //double tunerOutput;
-   //auto tuner = okapi::PIDTunerFactory::create(0, tunerOutput, 4000_ms, 900, 0.0001, 0.1, 0, 1, 0.00001, 0.1, 10, 16);
-
-
-/*
-   auto gyroTurnController = okapi::IterativeControllerFactory::posPID(0.0018, 0.0, 1000, 0, std::make_unique<okapi::AverageFilter<3>>());
-
-   //configure motors
-   okapi::Motor rf(-DRIVE_RIGHT_FRONT_PORT);
-   okapi::Motor rb(-DRIVE_RIGHT_BACK_PORT);
-   okapi::Motor lf(-DRIVE_LEFT_FRONT_PORT);
-   okapi::Motor lb(-DRIVE_LEFT_BACK_PORT);
-
-   //set sample time and target
-   gyroTurnController.setSampleTime(10_ms);
-
-   gyroTurnController.setTarget(400);
-
-   //run loop
-   while (!gyroTurnController.isSettled()) {
-      double newInput = gyro.get();
-      double newOutput = gyroTurnController.step(newInput);
-      rf.move(newOutput*127);
-      rb.move(newOutput*127);
-      lf.move(newOutput*127);
-      lb.move(newOutput*127);
-
-
-      pros::delay(10);
-   }
-*/
-
-/*
-   MiniPID pid = MiniPID(0.21, 0.000, 0.5);
-   pid.setOutputLimits(-127, 127);
-   pid.setMaxIOutput(30);
-   pid.setSetpointRange(900);
-
-   double target = 900;
-   int iterations = 0;
-
-   while(iterations < 2000) {
-      double output = pid.getOutput(gyro.get() / 1.075, target);
-      driveRightFront.move(-output);
-      driveRightBack.move(-output);
-      driveLeftFront.move(output);
-      driveLeftBack.move(output);
-      pros::delay(10);
-      std::cout << gyro.get() << std::endl;
-      pros::lcd::print(0, "Gyro: %f\n", (gyro.get() / 1.075) -900);
-      pros::lcd::print(1, "PID : %f\n", output);
-      iterations = iterations + 10;
-   }
-*/
-//the following block is the current iteration of auton
+//red primary auton
 /*
 drivePID(3200);
 intake.move(-127);
@@ -222,21 +145,67 @@ pros::delay(400);
 catapult.move(0);
 turnPID(900+420);
 intake.move(127);
-drivePID(2000);
-pros::delay(300);
+drivePID(1900);
+//pros::delay(300);
 intake.move(0);
 drivePID(-2000);
 pros::delay(500);
-turnPID(500);
-drivePID(2000);
+turnPID(1450);
+drivePID(1550);
+turnPID(-900);
+drivePID(4000);
 */
-pros::Task task_gyroadj(gyroadj);
 
-turnPID(1800);
-drivePID(1000);
-turnPID(1800);
-drivePID(1000);
-turnPID(1800);
-drivePID(1000);
 
+//red back
+/*
+drivePID(3200);
+intake.move(-127);
+pros::delay(300);
+drivePID(-500);
+turnPID(-1800-400);
+intake.move(0);
+drivePID(2450);
+turnPID(400);
+
+driveRightFront.move(50);
+driveRightBack.move(50);
+driveLeftFront.move(50);
+driveLeftBack.move(50);
+pros::delay(800);
+driveRightFront.move(0);
+driveRightBack.move(0);
+driveLeftFront.move(0);
+driveLeftBack.move(0);
+
+drivePID(-300);
+turnPID(275);
+pros::delay(1000);
+catapult.move(127);
+pros::delay(400);
+catapult.move(0);
+*/
+
+//blue primary auton
+drivePID(3200);
+intake.move(-127);
+pros::delay(100);
+drivePID(-2810);
+intake.move(0);
+
+catapult.move(127);
+pros::delay(400);
+catapult.move(0);
+
+turnPID(490);
+intake.move(127);
+drivePID(2600);
+//pros::delay(300);
+intake.move(0);
+drivePID(-2400);
+
+turnPID(-1300);
+drivePID(2000);
+turnPID(900);
+drivePID(4000);
 }

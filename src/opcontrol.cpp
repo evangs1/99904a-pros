@@ -24,14 +24,20 @@
 
 void catapultAutomation(void* param) {
 	bool catapultIsPrimed = true;
+	bool aborted = false;
    while (true) {
-      if (!catapultIsPrimed) {
-			catapult.move(127);
+		  if(master.get_digital(DIGITAL_X)) {
+ 				aborted = !aborted;
+				catapult.move(0);
+				pros::delay(400);
+ 			}
+      if (!catapultIsPrimed && !aborted) {
+				catapult.move(127);
       }
-		if(catapultIsPrimed) {
-			catapult.move(0);
-			catapult.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-		}
+			if(catapultIsPrimed) {
+				catapult.move(0);
+				catapult.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+			}
       if(master.get_digital(DIGITAL_L2) && catapultIsPrimed) {
 			catapult.move(127);
          pros::delay(400);
@@ -56,10 +62,25 @@ void opcontrol() {
 		int left = power + turn;
 		int right = power - turn;
 		//change to move_velocity?
-		driveRightFront.move(right);
-		driveRightBack.move(right);
-		driveLeftFront.move(left);
-		driveLeftBack.move(left);
+
+		if (abs(turn) + abs(power) < 1) {
+			driveRightFront.move(0);
+			driveRightBack.move(0);
+			driveLeftFront.move(0);
+			driveLeftBack.move(0);
+			driveRightFront.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+			driveRightBack.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+			driveLeftFront.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+			driveLeftBack.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+		} else {
+			driveRightFront.move(right);
+			driveRightBack.move(right);
+			driveLeftFront.move(left);
+			driveLeftBack.move(left);
+		}
+
+
+
 
 	//	std::cout << gyro.get() << std::endl;
 
@@ -79,6 +100,8 @@ void opcontrol() {
 		if(master.get_digital_new_press(DIGITAL_Y)) {
 			autonomous();
 		}
+
+
 
 		pros::delay(20);
 	}
