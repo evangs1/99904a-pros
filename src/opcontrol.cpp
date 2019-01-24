@@ -3,7 +3,6 @@
 #ifndef global
 #include "global.h"
 #endif
-//#include "define.hpp"
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -54,7 +53,7 @@ void catapultAutomation(void* param) {
 void opcontrol() {
 
 	pros::Task task_catapult_automation(catapultAutomation);
-
+	pros::ADIDigitalIn pin1 (1);
 	while (true) {
    	//pros::lcd::print("potentiometer: %d", potCatapult.get_value());
 		int turn = master.get_analog(ANALOG_LEFT_X);
@@ -80,7 +79,8 @@ void opcontrol() {
 		}
 
 
-
+		//pros::lcd::print(0, "Pin1: %d\n", pin1.get_value());
+		pros::lcd::print(0, "Auton: %d\n", getAutonNumber());
 
 	//	std::cout << gyro.get() << std::endl;
 

@@ -45,7 +45,7 @@
 
 #define INTAKE_PORT 7
 #define CATAPULT_PORT 8
-#define POT_CATAPULT_PORT 2
+#define POT_CATAPULT_PORT 8
 #define GYRO_PORT 7
 //#include "define.hpp"
 /**

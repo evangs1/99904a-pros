@@ -19,3 +19,13 @@ extern double gyroCurrent;
 extern double gyroLast;
 extern float gyroOutput;
 extern float diff;
+
+extern int pinValues[4];
+
+extern int getAutonNumber();
+
+//pin declaration
+extern pros::ADIDigitalIn pin1;
+extern pros::ADIDigitalIn pin2;
+extern pros::ADIDigitalIn pin3;
+extern pros::ADIDigitalIn pin4;
