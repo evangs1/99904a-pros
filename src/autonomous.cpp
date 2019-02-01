@@ -78,7 +78,7 @@ void turnPID (double target) {
 
 
 
-void drivePID (double target) {
+void drivePID (double target, double setPointRange = 900) {
   int leftBias = 25;
   int rightBias = 0;
   if (target < 0) {
@@ -89,13 +89,13 @@ void drivePID (double target) {
   MiniPID leftPID = MiniPID(0.21, 0.000, 0.5);
   leftPID.setOutputLimits(-127, 127);
   leftPID.setMaxIOutput(30);
-  leftPID.setSetpointRange(900);
+  leftPID.setSetpointRange(setPointRange);
 
 
   MiniPID rightPID = MiniPID(0.24, 0.000, 0.6);
   rightPID.setOutputLimits(-127, 127);
   rightPID.setMaxIOutput(30);
-  rightPID.setSetpointRange(900);
+  rightPID.setSetpointRange(setPointRange);
 
 
   driveRightFront.tare_position();
@@ -125,6 +125,227 @@ void drivePID (double target) {
   pros::lcd::print(1, "PID : %f\n", motorEncoderAverage);
 }
 
+void red_front_auton() {
+  //red primary auton
+  // line up with the left side of the tile
+  drivePID(3200);
+  intake.move(-127);
+  pros::delay(100);
+  drivePID(-2500);
+  intake.move(0);
+
+  turnPID(1800);
+  catapult.move(127);
+  pros::delay(400);
+  catapult.move(0);
+  turnPID(900+420);
+  intake.move(127);
+  drivePID(1100);
+  drivePID(800, 250);
+  intake.move(0);
+  drivePID(-2000);
+  pros::delay(500);
+  turnPID(1400);
+  drivePID(1550);
+  turnPID(-900);
+  drivePID(4000);
+}
+void red_back_auton() {
+  //red back
+  drivePID(3200);
+  intake.move(-127);
+  pros::delay(300);
+  drivePID(-500);
+  turnPID(-1800-400);
+  intake.move(0);
+  drivePID(2450);
+  turnPID(400);
+  driveRightFront.move(50);
+  driveRightBack.move(50);
+  driveLeftFront.move(50);
+  driveLeftBack.move(50);
+  pros::delay(800);
+  driveRightFront.move(0);
+  driveRightBack.move(0);
+  driveLeftFront.move(0);
+  driveLeftBack.move(0);
+  drivePID(-300);
+  turnPID(275);
+  pros::delay(200);
+  catapult.move(127);
+  pros::delay(400);
+  catapult.move(0);
+  turnPID(700);
+  drivePID(3120);
+  turnPID(900);
+  drivePID(3200);
+}
+void blue_front_auton() {
+  //blue primary auton
+  drivePID(3200);
+  intake.move(-127);
+  pros::delay(100);
+  drivePID(-2810);
+  intake.move(0);
+  catapult.move(127);
+  pros::delay(400);
+  catapult.move(0);
+  turnPID(490);
+  intake.move(127);
+  drivePID(2600);
+  intake.move(0);
+  drivePID(-2400);
+  turnPID(-1300);
+  drivePID(2000);
+  turnPID(900);
+  drivePID(4000);
+}
+void blue_back_auton() {
+  //Blue back
+  drivePID(3200);
+  intake.move(-127);
+  pros::delay(300);
+  drivePID(-500);
+  turnPID(400);
+  intake.move(0);
+  drivePID(-2450);
+  turnPID(-400);
+  driveRightFront.move(-50);
+  driveRightBack.move(-50);
+  driveLeftFront.move(-50);
+  driveLeftBack.move(-50);
+  pros::delay(1000);
+  driveRightFront.move(0);
+  driveRightBack.move(0);
+  driveLeftFront.move(0);
+  driveLeftBack.move(0);
+  drivePID(300);
+  turnPID(-259);
+  pros::delay(200);
+  catapult.move(127);
+  pros::delay(400);
+  catapult.move(0);
+  pros::delay(200);
+  turnPID(900+259);
+  drivePID(3120);
+  turnPID(-900);
+  drivePID(3650);
+}
+void red_front_nopark_auton() {
+  drivePID(3200);
+  intake.move(-127);
+  pros::delay(100);
+  drivePID(-2500);
+  intake.move(0);
+
+  turnPID(1800);
+  catapult.move(127);
+  pros::delay(400);
+  catapult.move(0);
+
+  turnPID(900);
+  drivePID(1600);
+  turnPID(900);
+  /*
+  driveRightFront.move(-50);
+  driveRightBack.move(-50);
+  driveLeftFront.move(-50);
+  driveLeftBack.move(-50);
+  pros::delay(800);
+  driveRightFront.move(0);
+  driveRightBack.move(0);
+  driveLeftFront.move(0);
+  driveLeftBack.move(0);
+  */
+  intake.move(127);
+
+  drivePID(1400, 260);
+  intake.move(0);
+  pros::delay(200);
+  drivePID(-1400);
+  turnPID(-925);
+  driveRightFront.move(50);
+  driveRightBack.move(50);
+  driveLeftFront.move(50);
+  driveLeftBack.move(50);
+  pros::delay(2000);
+  driveRightFront.move(0);
+  driveRightBack.move(0);
+  driveLeftFront.move(0);
+  driveLeftBack.move(0);
+
+
+}
+void blue_front_nopark_auton() {
+  drivePID(3200);
+  intake.move(-127);
+  pros::delay(100);
+  drivePID(-2810);
+  intake.move(0);
+  catapult.move(127);
+  pros::delay(400);
+  catapult.move(0);
+
+  turnPID(900);
+  drivePID(1600);
+  turnPID(-900);
+
+  intake.move(127);
+
+  drivePID(1400, 260);
+  intake.move(0);
+  pros::delay(200);
+  drivePID(-1400);
+  turnPID(925);
+  driveRightFront.move(50);
+  driveRightBack.move(50);
+  driveLeftFront.move(50);
+  driveLeftBack.move(50);
+  pros::delay(2000);
+  driveRightFront.move(0);
+  driveRightBack.move(0);
+  driveLeftFront.move(0);
+  driveLeftBack.move(0);
+
+}
+
+void red_front_mid_nopark_auton() {
+  drivePID(3200);
+  intake.move(-127);
+  pros::delay(100);
+  drivePID(-2500);
+  intake.move(0);
+
+  turnPID(1800);
+  catapult.move(127);
+  pros::delay(400);
+  catapult.move(0);
+
+  turnPID(900);
+  drivePID(1600);
+  turnPID(900);
+  /*
+  driveRightFront.move(-50);
+  driveRightBack.move(-50);
+  driveLeftFront.move(-50);
+  driveLeftBack.move(-50);
+  pros::delay(800);
+  driveRightFront.move(0);
+  driveRightBack.move(0);
+  driveLeftFront.move(0);
+  driveLeftBack.move(0);
+  */
+  intake.move(127);
+  drivePID(700);
+  drivePID(850, 250);
+  intake.move(0);
+  drivePID(-150);
+  turnPID(-750);
+  drivePID(1500);
+  turnPID(860);
+  drivePID(1250, 500);
+}
+
 void autonomous() {
 
 
@@ -132,111 +353,22 @@ pros::Task task_gyroadj(gyroadj);
 
 switch(getAutonNumber()) {
   case 0:
-    //red primary auton
-    drivePID(3200);
-    intake.move(-127);
-    pros::delay(100);
-    drivePID(-2500);
-    intake.move(0);
-
-    turnPID(1800);
-    catapult.move(127);
-    pros::delay(400);
-    catapult.move(0);
-    turnPID(900+420);
-    intake.move(127);
-    drivePID(1900);
-    intake.move(0);
-    drivePID(-2000);
-    pros::delay(500);
-    turnPID(1450);
-    drivePID(1550);
-    turnPID(-900);
-    drivePID(4000);
+    red_front_auton();
     break;
-
   case 1:
-    //red back
-    drivePID(3200);
-    intake.move(-127);
-    pros::delay(300);
-    drivePID(-500);
-    turnPID(-1800-400);
-    intake.move(0);
-    drivePID(2450);
-    turnPID(400);
-    driveRightFront.move(50);
-    driveRightBack.move(50);
-    driveLeftFront.move(50);
-    driveLeftBack.move(50);
-    pros::delay(800);
-    driveRightFront.move(0);
-    driveRightBack.move(0);
-    driveLeftFront.move(0);
-    driveLeftBack.move(0);
-    drivePID(-300);
-    turnPID(275);
-    pros::delay(200);
-    catapult.move(127);
-    pros::delay(400);
-    catapult.move(0);
-    turnPID(700);
-    drivePID(3120);
-    turnPID(900);
-    drivePID(3200);
+    red_back_auton();
     break;
-
   case 2:
-    //blue primary auton
-    drivePID(3200);
-    intake.move(-127);
-    pros::delay(100);
-    drivePID(-2810);
-    intake.move(0);
-    catapult.move(127);
-    pros::delay(400);
-    catapult.move(0);
-    turnPID(490);
-    intake.move(127);
-    drivePID(2600);
-    intake.move(0);
-    drivePID(-2400);
-    turnPID(-1300);
-    drivePID(2000);
-    turnPID(900);
-    drivePID(4000);
+    blue_front_auton();
     break;
-
   case 3:
-    //Blue back
-    drivePID(3200);
-    intake.move(-127);
-    pros::delay(300);
-    drivePID(-500);
-    turnPID(400);
-    intake.move(0);
-    drivePID(-2450);
-    turnPID(-400);
-    driveRightFront.move(-50);
-    driveRightBack.move(-50);
-    driveLeftFront.move(-50);
-    driveLeftBack.move(-50);
-    pros::delay(1000);
-    driveRightFront.move(0);
-    driveRightBack.move(0);
-    driveLeftFront.move(0);
-    driveLeftBack.move(0);
-    drivePID(300);
-    turnPID(-259);
-    pros::delay(200);
-    catapult.move(127);
-    pros::delay(400);
-    catapult.move(0);
-    pros::delay(200);
-    turnPID(900+259);
-    drivePID(3120);
-    turnPID(-900);
-    drivePID(3650);
+    blue_back_auton();
+    break;
+  case 4:
+    red_front_nopark_auton();
+    break;
+  case 5:
+    blue_front_nopark_auton();
     break;
 }
 

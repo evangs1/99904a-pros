@@ -80,7 +80,7 @@ void opcontrol() {
 
 
 		//pros::lcd::print(0, "Pin1: %d\n", pin1.get_value());
-		pros::lcd::print(0, "Auton: %d\n", getAutonNumber());
+		//pros::lcd::print(0, "Auton: %d\n", getAutonNumber());
 
 	//	std::cout << gyro.get() << std::endl;
 
@@ -101,7 +101,26 @@ void opcontrol() {
 			autonomous();
 		}
 
-
+		switch(getAutonNumber()) {
+		  case 0:
+		    pros::lcd::print(0, "Auton: RED FRONT PARK");
+				break;
+		  case 1:
+		    pros::lcd::print(0, "Auton: RED BACK MID PARK");
+				break;
+		  case 2:
+		    pros::lcd::print(0, "Auton: BLUE FRONT PARK");
+				break;
+		  case 3:
+		    pros::lcd::print(0, "Auton: BLUE BACK MID PARK");
+				break;
+		  case 4:
+		    pros::lcd::print(0, "Auton: RED FRONT NOPARK");
+				break;
+			case 5:
+				pros::lcd::print(0, "Auton: BLUE FRONT NOPARK");
+				break;
+		}
 
 		pros::delay(20);
 	}
