@@ -18,10 +18,12 @@ using namespace okapi::literals;
  * from where it left off.
  */
 
+okapi::ADIUltrasonic ultrasonicLeft(3, 4);
+okapi::ADIUltrasonic ultrasonicRight(5, 6);
 
 
 
- void gyroadj(void* param) {
+void gyroadj(void* param) {
  	gyroCurrent = gyro.get();
  	gyroLast = gyro.get();
     while (true) {
@@ -37,10 +39,6 @@ using namespace okapi::literals;
 
  	}
  }
-
-
-
-
 
 void turnPID (double target) {
   MiniPID pid = MiniPID(0.21, 0.000, 0.5);
@@ -73,10 +71,6 @@ void turnPID (double target) {
 
   }
 }
-
-
-
-
 
 void drivePID (double target, double setPointRange = 900) {
   int leftBias = 25;
@@ -123,6 +117,25 @@ void drivePID (double target, double setPointRange = 900) {
 
   }
   pros::lcd::print(1, "PID : %f\n", motorEncoderAverage);
+}
+
+void ultrasonicAlignPID () {
+  MiniPID sonarPID = MiniPID(0.08, 0.000, 0.5);
+  sonarPID.setOutputLimits(-127, 127);
+  int iterations = 0;
+  while (iterations < 4000) {
+    double error = ultrasonicLeft.get() - ultrasonicRight.get();
+    double sonarOutput = sonarPID.getOutput(error);
+
+    driveRightFront.move(-sonarOutput);
+    driveRightBack.move(-sonarOutput);
+    driveLeftFront.move(sonarOutput);
+    driveLeftBack.move(sonarOutput);
+    pros::delay(10);
+    if(driveRightFront.get_actual_velocity() == 0 && iterations > 50) {
+      break;
+    }
+  }
 }
 
 void red_front_auton() {
@@ -185,18 +198,19 @@ void blue_front_auton() {
   drivePID(3200);
   intake.move(-127);
   pros::delay(100);
-  drivePID(-2810);
+  drivePID(-2750);
   intake.move(0);
   catapult.move(127);
   pros::delay(400);
   catapult.move(0);
   turnPID(490);
   intake.move(127);
-  drivePID(2600);
+  drivePID(1100);
+  drivePID(800, 250);
   intake.move(0);
-  drivePID(-2400);
+  drivePID(-1900);
   turnPID(-1300);
-  drivePID(2000);
+  drivePID(1900);
   turnPID(900);
   drivePID(4000);
 }
@@ -208,7 +222,7 @@ void blue_back_auton() {
   drivePID(-500);
   turnPID(400);
   intake.move(0);
-  drivePID(-2450);
+  drivePID(-2250);
   turnPID(-400);
   driveRightFront.move(-50);
   driveRightBack.move(-50);
@@ -263,7 +277,7 @@ void red_front_nopark_auton() {
   intake.move(0);
   pros::delay(200);
   drivePID(-1400);
-  turnPID(-925);
+  turnPID(-1000);
   driveRightFront.move(50);
   driveRightBack.move(50);
   driveLeftFront.move(50);
@@ -296,7 +310,7 @@ void blue_front_nopark_auton() {
   intake.move(0);
   pros::delay(200);
   drivePID(-1400);
-  turnPID(925);
+  turnPID(1010);
   driveRightFront.move(50);
   driveRightBack.move(50);
   driveLeftFront.move(50);
@@ -346,46 +360,63 @@ void red_front_mid_nopark_auton() {
   drivePID(1250, 500);
 }
 
-void autonomous() {
+void prog_skills() {
+  //red primary auton
+  //basically just red primary with extended drive
+  // line up with the left side of the tile
+  drivePID(3200);
+  intake.move(-127);
+  pros::delay(100);
+  drivePID(-2500);
+  intake.move(0);
 
-
-pros::Task task_gyroadj(gyroadj);
-
-switch(getAutonNumber()) {
-  case 0:
-    red_front_auton();
-    break;
-  case 1:
-    red_back_auton();
-    break;
-  case 2:
-    blue_front_auton();
-    break;
-  case 3:
-    blue_back_auton();
-    break;
-  case 4:
-    red_front_nopark_auton();
-    break;
-  case 5:
-    blue_front_nopark_auton();
-    break;
+  turnPID(1800);
+  catapult.move(127);
+  pros::delay(400);
+  catapult.move(0);
+  turnPID(900+420);
+  intake.move(127);
+  drivePID(1100);
+  drivePID(800, 250);
+  intake.move(0);
+  drivePID(-2000);
+  pros::delay(500);
+  turnPID(1400);
+  drivePID(1550);
+  turnPID(-900);
+  drivePID(7000);
 }
 
+void autonomous() {
+  ultrasonicAlignPID();
+  okapi::ADIUltrasonic ultrasonicLeft(3, 4);
+  okapi::ADIUltrasonic ultrasonicRight(5, 6);
 
+  pros::Task task_gyroadj(gyroadj);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/*
+  switch(getAutonNumber()) {
+    case 0:
+      red_front_auton();
+      break;
+    case 1:
+      red_back_auton();
+      break;
+    case 2:
+      blue_front_auton();
+      break;
+    case 3:
+      blue_back_auton();
+      break;
+    case 4:
+      red_front_nopark_auton();
+      break;
+    case 5:
+      blue_front_nopark_auton();
+      break;
+    case 6:
+      prog_skills();
+      break;
+}
+*/
 }

@@ -51,7 +51,6 @@ void catapultAutomation(void* param) {
 
 
 void opcontrol() {
-
 	pros::Task task_catapult_automation(catapultAutomation);
 	pros::ADIDigitalIn pin1 (1);
 	while (true) {
@@ -119,6 +118,9 @@ void opcontrol() {
 				break;
 			case 5:
 				pros::lcd::print(0, "Auton: BLUE FRONT NOPARK");
+				break;
+			case 6:
+				pros::lcd::print(0, "Auton: PROG SKILLS");
 				break;
 		}
 
