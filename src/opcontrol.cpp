@@ -82,8 +82,16 @@ void opcontrol() {
 		//pros::lcd::print(0, "Auton: %d\n", getAutonNumber());
 
 	//	std::cout << gyro.get() << std::endl;
+		if(abs(master.get_analog(ANALOG_RIGHT_X)) > 1){
+			strafe.move(master.get_analog(ANALOG_RIGHT_X));
+		} else {
+			strafe.move(0);
+			strafe.move(0);
+			strafe.move(0);
+			strafe.move(0);
+			strafe.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+		}
 
-		strafe.move(master.get_analog(ANALOG_RIGHT_X));
 
 		if (master.get_digital(DIGITAL_R1)) {
 			intake.move_velocity(600);
@@ -120,7 +128,10 @@ void opcontrol() {
 				pros::lcd::print(0, "Auton: BLUE FRONT NOPARK");
 				break;
 			case 6:
-				pros::lcd::print(0, "Auton: PROG SKILLS");
+				pros::lcd::print(0, "Auton: PROG SKILLS 1");
+				break;
+			case 7:
+				pros::lcd::print(0, "Auton: PROG SKILLS 2");
 				break;
 		}
 

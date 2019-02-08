@@ -72,14 +72,27 @@ void turnPID (double target) {
   }
 }
 
-void drivePID (double target, double setPointRange = 900) {
-  int leftBias = 25;
-  int rightBias = 0;
+void drivePID (double target, double setPointRange = 900, double rightBias = 30) {
+  int leftBias = 0;
+  //int rightBias = 30;
   if (target < 0) {
      leftBias = leftBias * -1;
      rightBias = rightBias * -1;
   }
 
+  MiniPID leftPID = MiniPID(0.28, 0.000, 0.55);
+  leftPID.setOutputLimits(-127, 127);
+  leftPID.setMaxIOutput(30);
+  leftPID.setSetpointRange(setPointRange);
+
+
+  MiniPID rightPID = MiniPID(0.20, 0.000, 0.55);
+  rightPID.setOutputLimits(-127, 127);
+  rightPID.setMaxIOutput(30);
+  rightPID.setSetpointRange(setPointRange);
+
+
+/*
   MiniPID leftPID = MiniPID(0.21, 0.000, 0.5);
   leftPID.setOutputLimits(-127, 127);
   leftPID.setMaxIOutput(30);
@@ -90,7 +103,7 @@ void drivePID (double target, double setPointRange = 900) {
   rightPID.setOutputLimits(-127, 127);
   rightPID.setMaxIOutput(30);
   rightPID.setSetpointRange(setPointRange);
-
+*/
 
   driveRightFront.tare_position();
   driveRightBack.tare_position();
@@ -322,7 +335,6 @@ void blue_front_nopark_auton() {
   driveLeftBack.move(0);
 
 }
-
 void red_front_mid_nopark_auton() {
   drivePID(3200);
   intake.move(-127);
@@ -359,7 +371,6 @@ void red_front_mid_nopark_auton() {
   turnPID(860);
   drivePID(1250, 500);
 }
-
 void prog_skills() {
   //red primary auton
   //basically just red primary with extended drive
@@ -387,14 +398,26 @@ void prog_skills() {
   drivePID(7000);
 }
 
-void autonomous() {
-  ultrasonicAlignPID();
-  okapi::ADIUltrasonic ultrasonicLeft(3, 4);
-  okapi::ADIUltrasonic ultrasonicRight(5, 6);
+void prog_skills_1() {
+  //red primary auton
+  //basically just red primary with extended drive
+  // line up with the left side of the tile
 
+  turnPID(-1800);
+  /*
+  drivePID(3200);
+  intake.move(-127);
+  pros::delay(300);
+  drivePID(-500, 900, 0);
+  intake.move(127);
+  drivePID(800, 250, 0);
+  intake.move(0);
+  */
+}
+
+void autonomous() {
   pros::Task task_gyroadj(gyroadj);
 
-/*
   switch(getAutonNumber()) {
     case 0:
       red_front_auton();
@@ -417,6 +440,9 @@ void autonomous() {
     case 6:
       prog_skills();
       break;
+    case 7:
+      prog_skills_1();
+      break;
 }
-*/
+
 }
