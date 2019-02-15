@@ -45,7 +45,7 @@ void turnPID (double target) {
   pid.setOutputLimits(-127, 127);
   pid.setMaxIOutput(30);
   pid.setSetpointRange(900);
-
+  int bias = 38;
   //reset the gyro value
   //gyro.reset();
   gyroOutput = 0;
@@ -53,9 +53,41 @@ void turnPID (double target) {
   //double target = 900;
   int iterations = 0;
 
-  while(iterations < 2000) {
+  while(iterations < 1000) {
      //std::cout << driveRightFront.get_actual_velocity() << std::endl;
-     double output = pid.getOutput(gyroOutput / 1.075, target);
+     double output = pid.getOutput(gyroOutput / 1.075, target + bias);
+     driveRightFront.move(-output);
+     driveRightBack.move(-output);
+     driveLeftFront.move(output);
+     driveLeftBack.move(output);
+     pros::delay(10);
+     if(driveRightFront.get_actual_velocity() == 0 && iterations > 30) {
+        break;
+     }
+     //pros::lcd::print(0, "Gyro: %f\n", (gyro.get()) -900);
+     //pros::lcd::print(1, "PID : %f\n", output);
+     iterations = iterations + 10;
+
+
+  }
+}
+
+void turnPIDTime (double target, double time) {
+  MiniPID pid = MiniPID(0.21, 0.000, 0.5);
+  pid.setOutputLimits(-127, 127);
+  pid.setMaxIOutput(30);
+  pid.setSetpointRange(900);
+  int bias = 38;
+  //reset the gyro value
+  //gyro.reset();
+  gyroOutput = 0;
+
+  //double target = 900;
+  int iterations = 0;
+
+  while(iterations < time) {
+     //std::cout << driveRightFront.get_actual_velocity() << std::endl;
+     double output = pid.getOutput(gyroOutput / 1.075, target + bias);
      driveRightFront.move(-output);
      driveRightBack.move(-output);
      driveLeftFront.move(output);
@@ -73,8 +105,8 @@ void turnPID (double target) {
 }
 
 void drivePID (double target, double setPointRange = 900, double rightBias = 30) {
-  int leftBias = 0;
-  //int rightBias = 30;
+  int leftBias = 7;
+  rightBias = 0;
   if (target < 0) {
      leftBias = leftBias * -1;
      rightBias = rightBias * -1;
@@ -86,7 +118,7 @@ void drivePID (double target, double setPointRange = 900, double rightBias = 30)
   leftPID.setSetpointRange(setPointRange);
 
 
-  MiniPID rightPID = MiniPID(0.20, 0.000, 0.55);
+  MiniPID rightPID = MiniPID(0.265, 0.000, 0.55);
   rightPID.setOutputLimits(-127, 127);
   rightPID.setMaxIOutput(30);
   rightPID.setSetpointRange(setPointRange);
@@ -162,17 +194,19 @@ void red_front_auton() {
 
   turnPID(1800);
   catapult.move(127);
+  catapult2.move(127);
   pros::delay(400);
   catapult.move(0);
-  turnPID(900+420);
+  catapult2.move(0);
+  turnPID(900+350);
   intake.move(127);
-  drivePID(1100);
-  drivePID(800, 250);
+  drivePID(1000);
+  drivePID(810, 250);
   intake.move(0);
   drivePID(-2000);
   pros::delay(500);
   turnPID(1400);
-  drivePID(1550);
+  drivePID(1600);
   turnPID(-900);
   drivePID(4000);
 }
@@ -184,25 +218,27 @@ void red_back_auton() {
   drivePID(-500);
   turnPID(-1800-400);
   intake.move(0);
-  drivePID(2450);
+  drivePID(2150);
   turnPID(400);
   driveRightFront.move(50);
   driveRightBack.move(50);
   driveLeftFront.move(50);
   driveLeftBack.move(50);
-  pros::delay(800);
+  pros::delay(1400);
   driveRightFront.move(0);
   driveRightBack.move(0);
   driveLeftFront.move(0);
   driveLeftBack.move(0);
   drivePID(-300);
-  turnPID(275);
+  turnPID(247);
   pros::delay(200);
   catapult.move(127);
+  catapult2.move(127);
   pros::delay(400);
   catapult.move(0);
+  catapult2.move(0);
   turnPID(700);
-  drivePID(3120);
+  drivePID(3350);
   turnPID(900);
   drivePID(3200);
 }
@@ -214,16 +250,18 @@ void blue_front_auton() {
   drivePID(-2750);
   intake.move(0);
   catapult.move(127);
+  catapult2.move(127);
   pros::delay(400);
   catapult.move(0);
+  catapult2.move(0);
   turnPID(490);
   intake.move(127);
   drivePID(1100);
   drivePID(800, 250);
   intake.move(0);
   drivePID(-1900);
-  turnPID(-1300);
-  drivePID(1900);
+  turnPID(-1400);
+  drivePID(1750);
   turnPID(900);
   drivePID(4000);
 }
@@ -237,26 +275,28 @@ void blue_back_auton() {
   intake.move(0);
   drivePID(-2250);
   turnPID(-400);
-  driveRightFront.move(-50);
-  driveRightBack.move(-50);
-  driveLeftFront.move(-50);
-  driveLeftBack.move(-50);
-  pros::delay(1000);
+  driveRightFront.move(-40);
+  driveRightBack.move(-40);
+  driveLeftFront.move(-40);
+  driveLeftBack.move(-40);
+  pros::delay(1300);
   driveRightFront.move(0);
   driveRightBack.move(0);
   driveLeftFront.move(0);
   driveLeftBack.move(0);
-  drivePID(300);
-  turnPID(-259);
+  drivePID(500);
+  turnPIDTime(-263, 2500);
   pros::delay(200);
   catapult.move(127);
+  catapult2.move(127);
   pros::delay(400);
   catapult.move(0);
+  catapult2.move(0);
   pros::delay(200);
-  turnPID(900+259);
+  turnPID(900+272);
   drivePID(3120);
   turnPID(-900);
-  drivePID(3650);
+  drivePID(3900);
 }
 void red_front_nopark_auton() {
   drivePID(3200);
@@ -267,8 +307,10 @@ void red_front_nopark_auton() {
 
   turnPID(1800);
   catapult.move(127);
+  catapult2.move(127);
   pros::delay(400);
   catapult.move(0);
+  catapult2.move(0);
 
   turnPID(900);
   drivePID(1600);
@@ -289,8 +331,8 @@ void red_front_nopark_auton() {
   drivePID(1400, 260);
   intake.move(0);
   pros::delay(200);
-  drivePID(-1400);
-  turnPID(-1000);
+  drivePID(-1550);
+  turnPID(-925);
   driveRightFront.move(50);
   driveRightBack.move(50);
   driveLeftFront.move(50);
@@ -310,8 +352,10 @@ void blue_front_nopark_auton() {
   drivePID(-2810);
   intake.move(0);
   catapult.move(127);
+  catapult2.move(127);
   pros::delay(400);
   catapult.move(0);
+  catapult2.move(0);
 
   turnPID(900);
   drivePID(1600);
@@ -323,7 +367,7 @@ void blue_front_nopark_auton() {
   intake.move(0);
   pros::delay(200);
   drivePID(-1400);
-  turnPID(1010);
+  turnPID(950);
   driveRightFront.move(50);
   driveRightBack.move(50);
   driveLeftFront.move(50);
@@ -344,8 +388,10 @@ void red_front_mid_nopark_auton() {
 
   turnPID(1800);
   catapult.move(127);
+  catapult2.move(127);
   pros::delay(400);
   catapult.move(0);
+  catapult2.move(0);
 
   turnPID(900);
   drivePID(1600);
@@ -383,8 +429,10 @@ void prog_skills() {
 
   turnPID(1800);
   catapult.move(127);
+  catapult2.move(127);
   pros::delay(400);
   catapult.move(0);
+  catapult2.move(0);
   turnPID(900+420);
   intake.move(127);
   drivePID(1100);
@@ -402,9 +450,8 @@ void prog_skills_1() {
   //red primary auton
   //basically just red primary with extended drive
   // line up with the left side of the tile
-
-  turnPID(-1800);
-  /*
+drivePID(3200);
+/*
   drivePID(3200);
   intake.move(-127);
   pros::delay(300);

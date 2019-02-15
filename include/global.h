@@ -12,6 +12,7 @@ extern pros::Motor strafe;
 
 extern pros::Motor intake;
 extern pros::Motor catapult;
+extern pros::Motor catapult2;
 
 
 

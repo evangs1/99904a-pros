@@ -18,6 +18,7 @@ pros::Motor strafe(STRAFE_PORT, pros::E_MOTOR_GEARSET_18);
 
 pros::Motor intake(INTAKE_PORT);
 pros::Motor catapult(CATAPULT_PORT);
+pros::Motor catapult2(CATAPULT2_PORT);
 
 
 double gyroCurrent = 0;

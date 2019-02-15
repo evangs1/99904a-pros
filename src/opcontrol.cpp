@@ -25,23 +25,29 @@ void catapultAutomation(void* param) {
 	bool catapultIsPrimed = true;
 	bool aborted = false;
    while (true) {
+		 std::cout << catapultIsPrimed << "    " << potCatapult.get_value() << std::endl;
 		  if(master.get_digital(DIGITAL_X)) {
  				aborted = !aborted;
 				catapult.move(0);
+				catapult2.move(0);
 				pros::delay(400);
  			}
       if (!catapultIsPrimed && !aborted) {
 				catapult.move(127);
+				catapult2.move(127);
       }
 			if(catapultIsPrimed) {
 				catapult.move(0);
+				catapult2.move(0);
 				catapult.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+				catapult2.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 			}
       if(master.get_digital(DIGITAL_L2) && catapultIsPrimed) {
 			catapult.move(127);
+			catapult2.move(127);
          pros::delay(400);
       }
-		catapultIsPrimed = !(potCatapult.get_value() < 3100);
+		catapultIsPrimed = !(potCatapult.get_value() < 3050);
       pros::delay(20);
 	}
 }
@@ -103,11 +109,11 @@ void opcontrol() {
 		else {
 			intake.move_velocity(0);
 		}
-
+		/*
 		if(master.get_digital_new_press(DIGITAL_Y)) {
 			autonomous();
 		}
-
+		*/
 		switch(getAutonNumber()) {
 		  case 0:
 		    pros::lcd::print(0, "Auton: RED FRONT PARK");
@@ -135,6 +141,7 @@ void opcontrol() {
 				break;
 		}
 
+		pros::lcd::print(1, "Strafe %f", strafe.get_temperature() );
 		pros::delay(20);
 	}
 }
