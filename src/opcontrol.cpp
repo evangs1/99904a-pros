@@ -34,7 +34,7 @@ void catapultAutomation(void* param) {
  			}
       if (!catapultIsPrimed && !aborted) {
 				catapult.move(127);
-				catapult2.move(127);
+				catapult2.move(-127);
       }
 			if(catapultIsPrimed) {
 				catapult.move(0);
@@ -44,7 +44,7 @@ void catapultAutomation(void* param) {
 			}
       if(master.get_digital(DIGITAL_L2) && catapultIsPrimed) {
 			catapult.move(127);
-			catapult2.move(127);
+			catapult2.move(-127);
          pros::delay(400);
       }
 		catapultIsPrimed = !(potCatapult.get_value() < 3050);
@@ -59,28 +59,38 @@ void catapultAutomation(void* param) {
 void opcontrol() {
 	pros::Task task_catapult_automation(catapultAutomation);
 	pros::ADIDigitalIn pin1 (1);
+	int strafeTimer = 0;
+	bool broke = false;
 	while (true) {
-   	//pros::lcd::print("potentiometer: %d", potCatapult.get_value());
 		int turn = master.get_analog(ANALOG_LEFT_X);
+		if (master.get_analog(ANALOG_RIGHT_X) > 2) {
+			turn = turn + 11;
+		} else if (master.get_analog(ANALOG_RIGHT_X) < -1) {
+			turn = turn - 11;
+		}
 		int power = master.get_analog(ANALOG_LEFT_Y);
 		int left = power + turn;
 		int right = power - turn;
 		//change to move_velocity?
 
-		if (abs(turn) + abs(power) < 1) {
+
+
+		if (abs(turn) + abs(power) < 1 && !broke) {
 			driveRightFront.move(0);
 			driveRightBack.move(0);
 			driveLeftFront.move(0);
 			driveLeftBack.move(0);
-			driveRightFront.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-			driveRightBack.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-			driveLeftFront.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-			driveLeftBack.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+			driveRightFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+			driveRightBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+			driveLeftFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+			driveLeftBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+			broke = true;
 		} else {
 			driveRightFront.move(right);
 			driveRightBack.move(right);
 			driveLeftFront.move(left);
 			driveLeftBack.move(left);
+			broke = false;
 		}
 
 
@@ -100,20 +110,20 @@ void opcontrol() {
 
 
 		if (master.get_digital(DIGITAL_R1)) {
-			intake.move_velocity(600);
+			intake.move_velocity(-600);
 			// This is 100 because it's a 100rpm motor
 		}
 		else if (master.get_digital(DIGITAL_R2)) {
-			intake.move_velocity(-600);
+			intake.move_velocity(600);
 		}
 		else {
 			intake.move_velocity(0);
 		}
-		/*
+
 		if(master.get_digital_new_press(DIGITAL_Y)) {
 			autonomous();
 		}
-		*/
+
 		switch(getAutonNumber()) {
 		  case 0:
 		    pros::lcd::print(0, "Auton: RED FRONT PARK");
