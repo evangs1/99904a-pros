@@ -20,6 +20,7 @@ extern double gyroCurrent;
 extern double gyroLast;
 extern float gyroOutput;
 extern float diff;
+extern double gyroOutputReal;
 
 extern int pinValues[4];
 

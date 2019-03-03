@@ -44,12 +44,30 @@ void catapultAutomation(void* param) {
 */
 
 
+void gyroadj(void* param) {
+ 	gyroCurrent = gyro.get();
+ 	gyroLast = gyro.get();
+    while (true) {
+ 		 gyroCurrent = gyro.get();
+ 		 diff = gyroCurrent - gyroLast;
+ 		 gyroLast = gyroCurrent;
+       if (abs(diff) < 100) {
+          gyroOutputReal = gyroOutputReal + diff - 0.045;
+          gyroOutput = std::nearbyint(gyroOutputReal);
+       }
+
+ 		 //std::cout << gyro.get() << "    " << gyroOutput << std::endl;
+     pros::delay(1);
+
+ 	}
+ }
+
 void initialize() {
 
    okapi::ADIGyro gyro(GYRO_PORT, 1);
-	pros::delay(1400);
+	pros::delay(2400);
    pros::lcd::initialize();
-   std::string text("PROS");
+   pros::Task task_gyroadj(gyroadj);
 	//pros::Task my_task(my_task_fn, &text);
    //pros::Task task_catapult_automation(catapultAutomation, &text);
 	//pros::lcd::set_text(1, "Hello PROS User!");

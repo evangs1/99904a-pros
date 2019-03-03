@@ -23,63 +23,37 @@ okapi::ADIUltrasonic ultrasonicRight(5, 6);
 
 
 
-void gyroadj(void* param) {
- 	gyroCurrent = gyro.get();
- 	gyroLast = gyro.get();
-    while (true) {
- 		 gyroCurrent = gyro.get();
- 		 diff = gyroCurrent - gyroLast;
- 		 gyroLast = gyroCurrent;
-     if (abs(diff) < 100) {
-       gyroOutput = gyroOutput + diff;
-     }
 
- 		 //std::cout << gyro.get() << "    " << gyroOutput << std::endl;
-     pros::delay(1);
-
- 	}
- }
 
 void turnPID (double target) {
-  MiniPID pid = MiniPID(0.17, 0.000, 0.95);
+  MiniPID pid = MiniPID(0.27, 0.000, 1.1);
   pid.setOutputLimits(-127, 127);
   pid.setMaxIOutput(30);
   pid.setSetpointRange(900);
-  int bias = 0;
+  int bias = std::nearbyint(-0.03333*target);
+
   //bias was 38
 
   //reset the gyro value
-  //gyro.reset();
-  gyroOutput = 0;
+  gyroOutputReal = 0;
 
-  //double target = 900;
   int iterations = 0;
-  /*
-  if(target > 1000) {
-    bias = -30;
-  } else if (target < -1000) {
-    bias = 85;
-  }
 
-  if(target <= 1000) {
-    bias = -0;
-  } else if (target >= -1000) {
-    bias = 85;
-  }
-  */
-  while(iterations < 1500) {
-     //std::cout << driveRightFront.get_actual_velocity() << std::endl;
+  while(iterations < 2000) {
      double output = pid.getOutput(gyroOutput / 1.068, target + bias);
      driveRightFront.move(-output);
      driveRightBack.move(-output);
      driveLeftFront.move(output);
      driveLeftBack.move(output);
      pros::delay(10);
+     /*
      if(driveRightFront.get_actual_velocity() == 0 && iterations > 30) {
         break;
      }
-     pros::lcd::print(0, "Gyro: %f\n", gyro.get());
-     //pros::lcd::print(1, "PID : %f\n", output);
+     */
+     pros::lcd::print(0, "Gyro: %f\n", gyroOutput);
+     pros::lcd::print(1, "Gyroadj : %f\n", gyroOutput / 1.068);
+     pros::lcd::print(1, "Error : %f\n", abs(target) - abs(gyroOutput / 1.068));
      iterations = iterations + 10;
 
 
@@ -130,13 +104,13 @@ void turnPIDTime (double target, double time) {
 
 void drivePID (double target, double setPointRange = 900, double rightBias = 0) {
   int leftBias = 0;
-  rightBias = 30;
-  /*
+  rightBias = 50;
+
   if (target < 0) {
      leftBias = leftBias * -1;
-     rightBias = rightBias * -1;
+     rightBias = -10;
   }
-  */
+
   MiniPID leftPID = MiniPID(0.24, 0.000, 0.50);
   leftPID.setOutputLimits(-127, 127);
   leftPID.setMaxIOutput(30);
@@ -242,9 +216,16 @@ void red_front_auton() {
 }
 void red_back_auton() {
   //red back
-  turnPID(900);
-  pros::delay(1500);
-  turnPID(-900);
+  drivePID(3100);
+  pros::delay(2000);
+  drivePID(-3100);
+  pros::delay(2000);
+  turnPID(3600);
+  pros::delay(2000);
+  drivePID(1000);
+  turnPID(1800);
+  drivePID(1000);
+  pros::delay(2000);
   return;
   drivePID(3200);
   intake.move(-127);
@@ -494,7 +475,7 @@ void testing() {
 }
 
 void autonomous() {
-  pros::Task task_gyroadj(gyroadj);
+
 
   switch(getAutonNumber()) {
     case 0:

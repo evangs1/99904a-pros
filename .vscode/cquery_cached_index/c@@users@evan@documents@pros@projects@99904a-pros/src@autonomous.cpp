@@ -17,85 +17,491 @@ using namespace okapi::literals;
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {
-   /*
-   okapi::ChassisControllerPID driveChassis = okapi::ChassisControllerFactory::create(
-      {-DRIVE_LEFT_BACK_PORT, -DRIVE_LEFT_FRONT_PORT}, {DRIVE_RIGHT_BACK_PORT, DRIVE_RIGHT_FRONT_PORT},
-      okapi::IterativePosPIDController::Gains{0.0028, 0, 10},
-      okapi::IterativePosPIDController::Gains{0.0025, 0, 20},
-      okapi::AbstractMotor::gearset::green
-   );
-   */
 
-   //pros::lcd::initialize();
+okapi::ADIUltrasonic ultrasonicLeft(3, 4);
+okapi::ADIUltrasonic ultrasonicRight(5, 6);
 
-   //driveChassis.moveDistance(1000);
-   //pros::lcd::print(0, "After: %f", driveRightFront.get_position());
-   //std::cout << driveRightFront.get_position()  << std::endl;
 
-   /*
-   okapi::ADIGyro gyro(GYRO_PORT, 1);
-   auto controller = okapi::AsyncControllerFactory::posPID({-DRIVE_LEFT_BACK_PORT, -DRIVE_LEFT_FRONT_PORT, -DRIVE_RIGHT_BACK_PORT, -DRIVE_RIGHT_FRONT_PORT}, gyro, 100000000000, 1, 0.005);
 
-   controller.setTarget(400);
-   controller.waitUntilSettled();
-*/
-   //double tunerOutput;
-   //auto tuner = okapi::PIDTunerFactory::create(0, tunerOutput, 4000_ms, 900, 0.0001, 0.1, 0, 1, 0.00001, 0.1, 10, 16);
+
+
+void turnPID (double target) {
+  MiniPID pid = MiniPID(0.27, 0.000, 1.1);
+  pid.setOutputLimits(-127, 127);
+  pid.setMaxIOutput(30);
+  pid.setSetpointRange(900);
+  int bias = std::nearbyint(-0.03333*target);
+
+  //bias was 38
+
+  //reset the gyro value
+  gyroOutputReal = 0;
+
+  int iterations = 0;
+
+  while(iterations < 2000) {
+     double output = pid.getOutput(gyroOutput / 1.068, target + bias);
+     driveRightFront.move(-output);
+     driveRightBack.move(-output);
+     driveLeftFront.move(output);
+     driveLeftBack.move(output);
+     pros::delay(10);
+     /*
+     if(driveRightFront.get_actual_velocity() == 0 && iterations > 30) {
+        break;
+     }
+     */
+     pros::lcd::print(0, "Gyro: %f\n", gyroOutput);
+     pros::lcd::print(1, "Gyroadj : %f\n", gyroOutput / 1.068);
+     pros::lcd::print(1, "Error : %f\n", abs(target) - abs(gyroOutput / 1.068));
+     iterations = iterations + 10;
+
+
+  }
+  driveRightFront.move(0);
+  driveRightBack.move(0);
+  driveLeftFront.move(0);
+  driveLeftBack.move(0);
+}
+
+void turnPIDTime (double target, double time) {
+  MiniPID pid = MiniPID(0.13, 0.000, 0.9);
+  pid.setOutputLimits(-127, 127);
+  pid.setMaxIOutput(30);
+  pid.setSetpointRange(900);
+  int bias = 38;
+  //reset the gyro value
+  //gyro.reset();
+  gyroOutput = 0;
+
+  //double target = 900;
+  int iterations = 0;
+
+  while(iterations < time) {
+     //std::cout << driveRightFront.get_actual_velocity() << std::endl;
+     double output = pid.getOutput(gyroOutput / 1.075, target + bias);
+     driveRightFront.move(-output);
+     driveRightBack.move(-output);
+     driveLeftFront.move(output);
+     driveLeftBack.move(output);
+     pros::delay(10);
+     /*
+     if(driveRightFront.get_actual_velocity() == 0 && iterations > 30) {
+        break;
+     }
+     */
+     //pros::lcd::print(0, "Gyro: %f\n", (gyro.get()) -900);
+     //pros::lcd::print(1, "PID : %f\n", output);
+     iterations = iterations + 10;
+
+
+  }
+  driveRightFront.move(0);
+  driveRightBack.move(0);
+  driveLeftFront.move(0);
+  driveLeftBack.move(0);
+}
+
+void drivePID (double target, double setPointRange = 900, double rightBias = 0) {
+  int leftBias = 0;
+  rightBias = 50;
+
+  if (target < 0) {
+     leftBias = leftBias * -1;
+     rightBias = -10;
+  }
+
+  MiniPID leftPID = MiniPID(0.24, 0.000, 0.50);
+  leftPID.setOutputLimits(-127, 127);
+  leftPID.setMaxIOutput(30);
+  leftPID.setSetpointRange(setPointRange);
+
+  MiniPID rightPID = MiniPID(0.24, 0.000, 0.50);
+  leftPID.setOutputLimits(-127, 127);
+  leftPID.setMaxIOutput(30);
+  leftPID.setSetpointRange(setPointRange);
+
 
 
 /*
-   auto gyroTurnController = okapi::IterativeControllerFactory::posPID(0.0018, 0.0, 1000, 0, std::make_unique<okapi::AverageFilter<3>>());
-
-   //configure motors
-   okapi::Motor rf(-DRIVE_RIGHT_FRONT_PORT);
-   okapi::Motor rb(-DRIVE_RIGHT_BACK_PORT);
-   okapi::Motor lf(-DRIVE_LEFT_FRONT_PORT);
-   okapi::Motor lb(-DRIVE_LEFT_BACK_PORT);
-
-   //set sample time and target
-   gyroTurnController.setSampleTime(10_ms);
-
-   gyroTurnController.setTarget(400);
-
-   //run loop
-   while (!gyroTurnController.isSettled()) {
-      double newInput = gyro.get();
-      double newOutput = gyroTurnController.step(newInput);
-      rf.move(newOutput*127);
-      rb.move(newOutput*127);
-      lf.move(newOutput*127);
-      lb.move(newOutput*127);
+  MiniPID leftPID = MiniPID(0.21, 0.000, 0.5);
+  leftPID.setOutputLimits(-127, 127);
+  leftPID.setMaxIOutput(30);
+  leftPID.setSetpointRange(setPointRange);
 
 
-      pros::delay(10);
-   }
+  MiniPID rightPID = MiniPID(0.24, 0.000, 0.6);
+  rightPID.setOutputLimits(-127, 127);
+  rightPID.setMaxIOutput(30);
+  rightPID.setSetpointRange(setPointRange);
 */
 
+  driveRightFront.tare_position();
+  driveRightBack.tare_position();
+  driveLeftFront.tare_position();
+  driveLeftBack.tare_position();
 
-   MiniPID pid = MiniPID(0.21, 0.000, 0.5);
-   pid.setOutputLimits(-127, 127);
-   pid.setMaxIOutput(30);
-   pid.setSetpointRange(900);
+  //double target = 900;
+  int iterations = 0;
+  float leftMotorEncoderAverage;
+  float rightMotorEncoderAverage;
 
-   double target = 900;
-   int iterations = 0;
-
-   while(iterations < 2000) {
-      double output = pid.getOutput(gyro.get() / 1.075, target);
-      driveRightFront.move(-output);
-      driveRightBack.move(-output);
-      driveLeftFront.move(output);
-      driveLeftBack.move(output);
-      pros::delay(10);
-      std::cout << gyro.get() << std::endl;
-      pros::lcd::print(0, "Gyro: %f\n", (gyro.get() / 1.075) -900);
-      pros::lcd::print(1, "PID : %f\n", output);
-      iterations = iterations + 10;
-   }
-
+  while(iterations < 4000) {
+     leftMotorEncoderAverage = (driveLeftFront.get_position() + driveLeftBack.get_position()) / 2;
+     rightMotorEncoderAverage = (driveRightFront.get_position() + driveRightBack.get_position()) / 2;
+     double leftOutput = leftPID.getOutput(leftMotorEncoderAverage, target + leftBias);
+     double rightOutput = 0.95 * rightPID.getOutput(rightMotorEncoderAverage, target + rightBias);
+     driveRightFront.move(rightOutput);
+     driveRightBack.move(rightOutput);
+     driveLeftFront.move(leftOutput);
+     driveLeftBack.move(leftOutput);
+     pros::delay(10);
+     if(driveRightFront.get_actual_velocity() == 0 && iterations > 30) {
+        break;
+     }
+     iterations = iterations + 10;
 
 
+  }
+  //pros::lcd::print(1, "PID : %f\n", motorEncoderAverage);
+  std::cout << "Left Error: " << leftMotorEncoderAverage << std::endl;
+  std::cout << "Right Error: " << rightMotorEncoderAverage << std::endl;
+}
 
+void ultrasonicAlignPID () {
+  MiniPID sonarPID = MiniPID(0.08, 0.000, 0.5);
+  sonarPID.setOutputLimits(-127, 127);
+  int iterations = 0;
+  while (iterations < 4000) {
+    double error = ultrasonicLeft.get() - ultrasonicRight.get();
+    double sonarOutput = sonarPID.getOutput(error);
+
+    driveRightFront.move(-sonarOutput);
+    driveRightBack.move(-sonarOutput);
+    driveLeftFront.move(sonarOutput);
+    driveLeftBack.move(sonarOutput);
+    pros::delay(10);
+    if(driveRightFront.get_actual_velocity() == 0 && iterations > 50) {
+      break;
+    }
+  }
+}
+
+void red_front_auton() {
+  //red primary auton
+  // line up with the left side of the tile
+  drivePID(3100);
+  intake.move(127);
+  pros::delay(400);
+  drivePID(-2300);
+
+  turnPID(1800);
+  intake.move(0);
+  catapult.move(127);
+  catapult2.move(-127);
+  pros::delay(400);
+  catapult.move(0);
+  catapult2.move(0);
+  turnPID(900+350);
+  intake.move(-127);
+  drivePID(900);
+  drivePID(810, 280);
+  intake.move(0);
+  drivePID(-1900);
+  pros::delay(500);
+  turnPID(1400);
+  drivePID(1900);
+  turnPID(-900);
+  drivePID(4000);
+}
+void red_back_auton() {
+  //red back
+  drivePID(3100);
+  pros::delay(2000);
+  drivePID(-3100);
+  pros::delay(2000);
+  turnPID(3600);
+  pros::delay(2000);
+  drivePID(1000);
+  turnPID(1800);
+  drivePID(1000);
+  pros::delay(2000);
+  return;
+  drivePID(3200);
+  intake.move(-127);
+  pros::delay(300);
+  drivePID(-500);
+  turnPID(-1800-400);
+  intake.move(0);
+  drivePID(2300);
+  turnPID(400);
+  driveRightFront.move(50);
+  driveRightBack.move(50);
+  driveLeftFront.move(50);
+  driveLeftBack.move(50);
+  pros::delay(1400);
+  driveRightFront.move(0);
+  driveRightBack.move(0);
+  driveLeftFront.move(0);
+  driveLeftBack.move(0);
+  drivePID(-335);
+  turnPID(285);
+  pros::delay(200);
+  catapult.move(127);
+  catapult2.move(127);
+  pros::delay(400);
+  catapult.move(0);
+  catapult2.move(0);
+  turnPID(700);
+  drivePID(3350);
+  turnPID(900);
+  drivePID(3200);
+}
+void blue_front_auton() {
+  //blue primary auton
+  drivePID(3100);
+  intake.move(127);
+  pros::delay(100);
+  drivePID(-2700);
+  intake.move(0);
+  catapult.move(127);
+  catapult2.move(-127);
+  pros::delay(400);
+  catapult.move(0);
+  catapult2.move(0);
+  turnPID(600);
+  intake.move(-127);
+  drivePID(1250);
+  drivePID(800, 250);
+  intake.move(0);
+  drivePID(-1550);
+  turnPID(-1200);
+  drivePID(1750);
+  turnPID(900);
+  drivePID(4000);
+}
+void blue_back_auton() {
+  //Blue back
+
+  drivePID(3100);
+  intake.move(127);
+  pros::delay(300);
+  drivePID(-500);
+  intake.move(0);
+
+
+}
+void red_front_nopark_auton() {
+  drivePID(3200);
+  intake.move(-127);
+  pros::delay(100);
+  drivePID(-2400);
+  intake.move(0);
+
+  turnPID(1800);
+  catapult.move(127);
+  catapult2.move(-127);
+  pros::delay(400);
+  catapult.move(0);
+  catapult2.move(0);
+
+  turnPID(900);
+  drivePID(1600);
+  turnPID(900);
+
+  driveRightFront.move(-50);
+  driveRightBack.move(-50);
+  driveLeftFront.move(-50);
+  driveLeftBack.move(-50);
+  pros::delay(800);
+  driveRightFront.move(0);
+  driveRightBack.move(0);
+  driveLeftFront.move(0);
+  driveLeftBack.move(0);
+
+  intake.move(127);
+
+  drivePID(700);
+  drivePID(1400, 260);
+  intake.move(0);
+  pros::delay(200);
+  drivePID(-1600);
+  turnPID(-975);
+  driveRightFront.move(50);
+  driveRightBack.move(50);
+  driveLeftFront.move(50);
+  driveLeftBack.move(50);
+  pros::delay(2000);
+  driveRightFront.move(0);
+  driveRightBack.move(0);
+  driveLeftFront.move(0);
+  driveLeftBack.move(0);
+
+
+}
+void blue_front_nopark_auton() {
+  drivePID(3200);
+  intake.move(-127);
+  pros::delay(100);
+  drivePID(-2810);
+  intake.move(0);
+  catapult.move(127);
+  catapult2.move(-127);
+  pros::delay(400);
+  catapult.move(0);
+  catapult2.move(0);
+
+  turnPID(900);
+  drivePID(1600);
+  turnPID(-900);
+  driveRightFront.move(-50);
+  driveRightBack.move(-50);
+  driveLeftFront.move(-50);
+  driveLeftBack.move(-50);
+  pros::delay(700);
+  driveRightFront.move(0);
+  driveRightBack.move(0);
+  driveLeftFront.move(0);
+  driveLeftBack.move(0);
+
+  intake.move(127);
+  drivePID(700);
+  drivePID(1400, 250);
+  intake.move(0);
+  pros::delay(200);
+  drivePID(-1465);
+  turnPID(1010);
+  driveRightFront.move(50);
+  driveRightBack.move(50);
+  driveLeftFront.move(50);
+  driveLeftBack.move(50);
+  pros::delay(2000);
+  driveRightFront.move(0);
+  driveRightBack.move(0);
+  driveLeftFront.move(0);
+  driveLeftBack.move(0);
+
+}
+void red_front_mid_nopark_auton() {
+  drivePID(3200);
+  intake.move(-127);
+  pros::delay(100);
+  drivePID(-2500);
+  intake.move(0);
+
+  turnPID(1800);
+  catapult.move(127);
+  catapult2.move(-127);
+  pros::delay(400);
+  catapult.move(0);
+  catapult2.move(0);
+
+  turnPID(900);
+  drivePID(1600);
+  turnPID(900);
+  /*
+  driveRightFront.move(-50);
+  driveRightBack.move(-50);
+  driveLeftFront.move(-50);
+  driveLeftBack.move(-50);
+  pros::delay(800);
+  driveRightFront.move(0);
+  driveRightBack.move(0);
+  driveLeftFront.move(0);
+  driveLeftBack.move(0);
+  */
+  intake.move(127);
+  drivePID(700);
+  drivePID(850, 250);
+  intake.move(0);
+  drivePID(-150);
+  turnPID(-750);
+  drivePID(1500);
+  turnPID(860);
+  drivePID(1250, 500);
+}
+void prog_skills() {
+  //red primary auton
+  //basically just red primary with extended drive
+  // line up with the left side of the tile
+  drivePID(3200);
+  intake.move(-127);
+  pros::delay(100);
+  drivePID(-2500);
+  intake.move(0);
+
+  turnPID(1800);
+  catapult.move(127);
+  catapult2.move(-127);
+  pros::delay(400);
+  catapult.move(0);
+  catapult2.move(0);
+  turnPID(900+420);
+  intake.move(127);
+  drivePID(1100);
+  drivePID(800, 250);
+  intake.move(0);
+  drivePID(-2000);
+  pros::delay(500);
+  turnPID(1400);
+  drivePID(1550);
+  turnPID(-900);
+  drivePID(7000);
+}
+
+void testing() {
+
+  auto myChassis = okapi::ChassisControllerFactory::create(
+  {-2, -4}, // Left motors
+  {1, 3},   // Right motors
+  okapi::AbstractMotor::gearset::green,
+  {4_in, 12.5_in} // 4 inch wheels, 12.5 inch wheelbase width
+);
+
+  auto profileController = okapi::AsyncControllerFactory::motionProfile(
+  1.0,  // Maximum linear velocity of the Chassis in m/s
+  2.0,  // Maximum linear acceleration of the Chassis in m/s/s
+  10.0, // Maximum linear jerk of the Chassis in m/s/s/s
+  myChassis  // Chassis Controller
+ );
+  profileController.generatePath({okapi::Point{0_ft, 0_ft, 0_deg}, okapi::Point{4_ft, 0_ft, 0_deg}}, "A");
+  profileController.generatePath({okapi::Point{0_ft, 0_ft, 0_deg}, okapi::Point{4_ft, 0_ft, 0_deg}}, "B");
+  profileController.setTarget("A");
+  profileController.waitUntilSettled();
+  profileController.setTarget("B");
+  profileController.waitUntilSettled();
+
+
+}
+
+void autonomous() {
+
+
+  switch(getAutonNumber()) {
+    case 0:
+      red_front_auton();
+      break;
+    case 1:
+      red_back_auton();
+      break;
+    case 2:
+      blue_front_auton();
+      break;
+    case 3:
+      blue_back_auton();
+      break;
+    case 4:
+      red_front_nopark_auton();
+      break;
+    case 5:
+      blue_front_nopark_auton();
+      break;
+    case 6:
+      prog_skills();
+      break;
+    case 7:
+      testing();
+      break;
+}
 
 }

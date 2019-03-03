@@ -25,7 +25,7 @@ void catapultAutomation(void* param) {
 	bool catapultIsPrimed = true;
 	bool aborted = false;
    while (true) {
-		 std::cout << catapultIsPrimed << "    " << potCatapult.get_value() << std::endl;
+		 //std::cout << catapultIsPrimed << "    " << potCatapult.get_value() << std::endl;
 		  if(master.get_digital(DIGITAL_X)) {
  				aborted = !aborted;
 				catapult.move(0);
@@ -80,6 +80,10 @@ void opcontrol() {
 			driveRightBack.move(0);
 			driveLeftFront.move(0);
 			driveLeftBack.move(0);
+			driveRightFront.move_velocity(0);
+			driveRightBack.move_velocity(0);
+			driveLeftFront.move_velocity(0);
+			driveLeftBack.move_velocity(0);
 			driveRightFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 			driveRightBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 			driveLeftFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
@@ -152,6 +156,8 @@ void opcontrol() {
 		}
 
 		pros::lcd::print(1, "Strafe %f", strafe.get_temperature() );
+		pros::lcd::print(2, "Gyro %f", gyroOutput );
+		pros::lcd::print(3, "Gyroadj %f", gyroOutput / 1.068 );
 		pros::delay(20);
 	}
 }

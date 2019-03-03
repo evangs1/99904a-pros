@@ -26,6 +26,7 @@ double gyroLast = 0;
 double difference;
 float gyroOutput = 0;
 float diff = 0;
+double gyroOutputReal = 0;
 
 int pinValues[4] = {0, 0, 0, 0};
 
