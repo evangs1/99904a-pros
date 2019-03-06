@@ -52,7 +52,7 @@ void gyroadj(void* param) {
  		 diff = gyroCurrent - gyroLast;
  		 gyroLast = gyroCurrent;
        if (abs(diff) < 100) {
-          gyroOutputReal = gyroOutputReal + diff - 0.045;
+          gyroOutputReal = gyroOutputReal + diff + 0.0002;
           gyroOutput = std::nearbyint(gyroOutputReal);
        }
 
@@ -65,7 +65,7 @@ void gyroadj(void* param) {
 void initialize() {
 
    okapi::ADIGyro gyro(GYRO_PORT, 1);
-	pros::delay(2400);
+	pros::delay(1400);
    pros::lcd::initialize();
    pros::Task task_gyroadj(gyroadj);
 	//pros::Task my_task(my_task_fn, &text);

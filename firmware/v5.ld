@@ -11,10 +11,10 @@
 /*                                                                 */
 /*******************************************************************/
 
-/* This stack is used during initialization, but FreeRTOS tasks have their own
-   stack allocated in BSS or Heap (kernel tasks in FreeRTOS .bss heap; user tasks
-   in standard heap) */
+/* Stack is used in 3rd party user code       */
 _STACK_SIZE = DEFINED(_STACK_SIZE) ? _STACK_SIZE : 0x2000;
+/* Allocate 1MB of memory to the heap for now */
+_HEAP_SIZE  = DEFINED(_HEAP_SIZE)  ? _HEAP_SIZE  : 0x100000;
 
 _ABORT_STACK_SIZE = DEFINED(_ABORT_STACK_SIZE) ? _ABORT_STACK_SIZE : 1024;
 _SUPERVISOR_STACK_SIZE = DEFINED(_SUPERVISOR_STACK_SIZE) ? _SUPERVISOR_STACK_SIZE : 2048;
@@ -24,7 +24,11 @@ _UNDEF_STACK_SIZE = DEFINED(_UNDEF_STACK_SIZE) ? _UNDEF_STACK_SIZE : 1024;
 
 /* Define Memories in the system */
 
-INCLUDE firmware/v5-common.ld
+MEMORY
+{
+   /* user code  72M */
+   ps7_ddr_0_S_AXI_BASEADDR : ORIGIN = 0x03800000, LENGTH = 0x04800000
+}
 
 /* Specify the default entry point to the program */
 
@@ -34,13 +38,6 @@ ENTRY(vexStartup)
 
 SECTIONS
 {
-/* THis will get stripped out before uploading, but we need to place code
-   here so we can at least link to it (install_hot_table) */
-.hot_init : {
-  KEEP (*(.hot_magic))
-  KEEP (*(.hot_init))
-} > HOT_MEMORY
-
 .text : {
    KEEP (*(.vectors))
    /* boot data should be exactly 32 bytes long */
@@ -60,15 +57,15 @@ SECTIONS
    *(.vfp11_veneer)
    *(.ARM.extab)
    *(.gnu.linkonce.armextab.*)
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .init : {
    KEEP (*(.init))
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .fini : {
    KEEP (*(.fini))
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .rodata : {
    __rodata_start = .;
@@ -76,14 +73,14 @@ SECTIONS
    *(.rodata.*)
    *(.gnu.linkonce.r.*)
    __rodata_end = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .rodata1 : {
    __rodata1_start = .;
    *(.rodata1)
    *(.rodata1.*)
    __rodata1_end = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .sdata2 : {
    __sdata2_start = .;
@@ -91,7 +88,7 @@ SECTIONS
    *(.sdata2.*)
    *(.gnu.linkonce.s2.*)
    __sdata2_end = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .sbss2 : {
    __sbss2_start = .;
@@ -99,7 +96,7 @@ SECTIONS
    *(.sbss2.*)
    *(.gnu.linkonce.sb2.*)
    __sbss2_end = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .data : {
    __data_start = .;
@@ -110,18 +107,18 @@ SECTIONS
    *(.got)
    *(.got.plt)
    __data_end = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .data1 : {
    __data1_start = .;
    *(.data1)
    *(.data1.*)
    __data1_end = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .got : {
    *(.got)
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .ctors : {
    __CTOR_LIST__ = .;
@@ -132,7 +129,7 @@ SECTIONS
    KEEP (*(.ctors))
    __CTOR_END__ = .;
    ___CTORS_END___ = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .dtors : {
    __DTOR_LIST__ = .;
@@ -143,67 +140,67 @@ SECTIONS
    KEEP (*(.dtors))
    __DTOR_END__ = .;
    ___DTORS_END___ = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .fixup : {
    __fixup_start = .;
    *(.fixup)
    __fixup_end = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .eh_frame : {
    *(.eh_frame)
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .eh_framehdr : {
    __eh_framehdr_start = .;
    *(.eh_framehdr)
    __eh_framehdr_end = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .gcc_except_table : {
    *(.gcc_except_table)
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .mmu_tbl (ALIGN(16384)) : {
    __mmu_tbl_start = .;
    *(.mmu_tbl)
    __mmu_tbl_end = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .ARM.exidx : {
    __exidx_start = .;
    *(.ARM.exidx*)
    *(.gnu.linkonce.armexidix.*.*)
    __exidx_end = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .preinit_array : {
    __preinit_array_start = .;
    KEEP (*(SORT(.preinit_array.*)))
    KEEP (*(.preinit_array))
    __preinit_array_end = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .init_array : {
    __init_array_start = .;
    KEEP (*(SORT(.init_array.*)))
    KEEP (*(.init_array))
    __init_array_end = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .fini_array : {
    __fini_array_start = .;
    KEEP (*(SORT(.fini_array.*)))
    KEEP (*(.fini_array))
    __fini_array_end = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .ARM.attributes : {
    __ARM.attributes_start = .;
    *(.ARM.attributes)
    __ARM.attributes_end = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .sdata : {
    __sdata_start = .;
@@ -211,7 +208,7 @@ SECTIONS
    *(.sdata.*)
    *(.gnu.linkonce.s.*)
    __sdata_end = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .sbss (NOLOAD) : {
    __sbss_start = .;
@@ -219,7 +216,7 @@ SECTIONS
    *(.sbss.*)
    *(.gnu.linkonce.sb.*)
    __sbss_end = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .tdata : {
    __tdata_start = .;
@@ -227,7 +224,7 @@ SECTIONS
    *(.tdata.*)
    *(.gnu.linkonce.td.*)
    __tdata_end = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .tbss : {
    __tbss_start = .;
@@ -235,7 +232,7 @@ SECTIONS
    *(.tbss.*)
    *(.gnu.linkonce.tb.*)
    __tbss_end = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .bss (NOLOAD) : {
    __bss_start = .;
@@ -244,7 +241,7 @@ SECTIONS
    *(.gnu.linkonce.b.*)
    *(COMMON)
    __bss_end = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 _SDA_BASE_ = __sdata_start + ((__sbss_end - __sdata_start) / 2 );
 
@@ -260,7 +257,7 @@ _SDA2_BASE_ = __sdata2_start + ((__sbss2_end - __sdata2_start) / 2 );
    . += _HEAP_SIZE;
    _heap_end = .;
    HeapLimit = .;
-} > HEAP
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 .stack (NOLOAD) : {
    . = ALIGN(16);
@@ -290,7 +287,7 @@ _SDA2_BASE_ = __sdata2_start + ((__sbss2_end - __sdata2_start) / 2 );
    . += _UNDEF_STACK_SIZE;
    . = ALIGN(16);
    __undef_stack = .;
-} > COLD_MEMORY
+} > ps7_ddr_0_S_AXI_BASEADDR
 
 _end = .;
 }

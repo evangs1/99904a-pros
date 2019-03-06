@@ -157,7 +157,8 @@ void opcontrol() {
 
 		pros::lcd::print(1, "Strafe %f", strafe.get_temperature() );
 		pros::lcd::print(2, "Gyro %f", gyroOutput );
-		pros::lcd::print(3, "Gyroadj %f", gyroOutput / 1.068 );
+		pros::lcd::print(3, "Gyroadj %f", gyroOutput / 1.061 );
+		pros::lcd::print(4, "Gyroraw %f", gyro.get() );
 		pros::delay(20);
 	}
 }

@@ -18,21 +18,23 @@ using namespace okapi::literals;
  * from where it left off.
  */
 
-okapi::ADIUltrasonic ultrasonicLeft(3, 4);
-okapi::ADIUltrasonic ultrasonicRight(5, 6);
-
-
-
-
 
 void turnPID (double target) {
-  MiniPID pid = MiniPID(0.27, 0.000, 1.1);
+  MiniPID pid = MiniPID(0.27, 0.003, 1.8);
   pid.setOutputLimits(-127, 127);
   pid.setMaxIOutput(30);
   pid.setSetpointRange(900);
-  int bias = std::nearbyint(-0.03333*target);
-
+  //int bias = std::nearbyint(0.059722*target);
+  int bias = 0;
   //bias was 38
+
+  float gyroCalibrationConst = 1;
+
+  if(target < 0) {
+    gyroCalibrationConst = 1.01;
+  } else if (target > 0) {
+    gyroCalibrationConst = 1.01;
+  }
 
   //reset the gyro value
   gyroOutputReal = 0;
@@ -40,20 +42,20 @@ void turnPID (double target) {
   int iterations = 0;
 
   while(iterations < 2000) {
-     double output = pid.getOutput(gyroOutput / 1.068, target + bias);
+     double output = pid.getOutput(gyroOutput/gyroCalibrationConst, target + bias);
      driveRightFront.move(-output);
      driveRightBack.move(-output);
      driveLeftFront.move(output);
      driveLeftBack.move(output);
      pros::delay(10);
-     /*
+     
      if(driveRightFront.get_actual_velocity() == 0 && iterations > 30) {
         break;
      }
-     */
+
      pros::lcd::print(0, "Gyro: %f\n", gyroOutput);
-     pros::lcd::print(1, "Gyroadj : %f\n", gyroOutput / 1.068);
-     pros::lcd::print(1, "Error : %f\n", abs(target) - abs(gyroOutput / 1.068));
+     pros::lcd::print(1, "Gyroadj : %f\n", gyroOutput / gyroCalibrationConst);
+     pros::lcd::print(1, "Error : %f\n", abs(target) - abs(gyroOutput / gyroCalibrationConst));
      iterations = iterations + 10;
 
 
@@ -166,25 +168,6 @@ void drivePID (double target, double setPointRange = 900, double rightBias = 0) 
   //pros::lcd::print(1, "PID : %f\n", motorEncoderAverage);
   std::cout << "Left Error: " << leftMotorEncoderAverage << std::endl;
   std::cout << "Right Error: " << rightMotorEncoderAverage << std::endl;
-}
-
-void ultrasonicAlignPID () {
-  MiniPID sonarPID = MiniPID(0.08, 0.000, 0.5);
-  sonarPID.setOutputLimits(-127, 127);
-  int iterations = 0;
-  while (iterations < 4000) {
-    double error = ultrasonicLeft.get() - ultrasonicRight.get();
-    double sonarOutput = sonarPID.getOutput(error);
-
-    driveRightFront.move(-sonarOutput);
-    driveRightBack.move(-sonarOutput);
-    driveLeftFront.move(sonarOutput);
-    driveLeftBack.move(sonarOutput);
-    pros::delay(10);
-    if(driveRightFront.get_actual_velocity() == 0 && iterations > 50) {
-      break;
-    }
-  }
 }
 
 void red_front_auton() {
