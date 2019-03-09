@@ -20,7 +20,7 @@ pros::Motor intake(INTAKE_PORT);
 pros::Motor catapult(CATAPULT_PORT);
 pros::Motor catapult2(CATAPULT2_PORT);
 
-
+bool fired = false;
 double gyroCurrent = 0;
 double gyroLast = 0;
 double difference;

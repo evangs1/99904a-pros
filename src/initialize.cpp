@@ -62,10 +62,50 @@ void gyroadj(void* param) {
  	}
  }
 
-void initialize() {
+ void catapultAutomation(void* param) {
+ 	bool catapultIsPrimed = true;
+ 	bool aborted = false;
+  fired = false;
+  pros::delay(200);
+    while (true) {
 
+ 		 //std::cout << catapultIsPrimed << "    " << potCatapult.get_value() << std::endl;
+ 		  if(master.get_digital(DIGITAL_X)) {
+  				aborted = !aborted;
+ 				catapult.move(0);
+ 				catapult2.move(0);
+ 				pros::delay(400);
+  			}
+       if (!catapultIsPrimed && !aborted) {
+ 				catapult.move(127);
+ 				catapult2.move(-127);
+       }
+ 			if(catapultIsPrimed) {
+ 				catapult.move(0);
+ 				catapult2.move(0);
+ 				catapult.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+ 				catapult2.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+ 			}
+       if(master.get_digital(DIGITAL_L2) && catapultIsPrimed) {
+ 			    fired = true;
+       }
+       if(fired) {
+         catapult.move(127);
+  			 catapult2.move(-127);
+         pros::delay(400);
+         fired = false;
+       }
+       std::cout << fired << "   " << catapultIsPrimed << std::endl;
+ 		catapultIsPrimed = !(potCatapult.get_value() < 3050);
+       pros::delay(20);
+ 	}
+ }
+
+
+void initialize() {
+   pros::Task task_catapult_automation(catapultAutomation);
    okapi::ADIGyro gyro(GYRO_PORT, 1);
-	pros::delay(1400);
+	 pros::delay(1400);
    pros::lcd::initialize();
    pros::Task task_gyroadj(gyroadj);
 	//pros::Task my_task(my_task_fn, &text);

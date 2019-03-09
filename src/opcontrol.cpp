@@ -21,43 +21,9 @@
 
 
 
-void catapultAutomation(void* param) {
-	bool catapultIsPrimed = true;
-	bool aborted = false;
-   while (true) {
-		 //std::cout << catapultIsPrimed << "    " << potCatapult.get_value() << std::endl;
-		  if(master.get_digital(DIGITAL_X)) {
- 				aborted = !aborted;
-				catapult.move(0);
-				catapult2.move(0);
-				pros::delay(400);
- 			}
-      if (!catapultIsPrimed && !aborted) {
-				catapult.move(127);
-				catapult2.move(-127);
-      }
-			if(catapultIsPrimed) {
-				catapult.move(0);
-				catapult2.move(0);
-				catapult.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-				catapult2.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-			}
-      if(master.get_digital(DIGITAL_L2) && catapultIsPrimed) {
-			catapult.move(127);
-			catapult2.move(-127);
-         pros::delay(400);
-      }
-		catapultIsPrimed = !(potCatapult.get_value() < 3050);
-      pros::delay(20);
-	}
-}
-
-
-
-
 
 void opcontrol() {
-	pros::Task task_catapult_automation(catapultAutomation);
+
 	pros::ADIDigitalIn pin1 (1);
 	int strafeTimer = 0;
 	bool broke = false;

@@ -18,29 +18,23 @@ using namespace okapi::literals;
  * from where it left off.
  */
 
-
 void turnPID (double target) {
-  MiniPID pid = MiniPID(0.27, 0.003, 1.8);
+  MiniPID pid = MiniPID(0.27, 0.000, 1.8);
   pid.setOutputLimits(-127, 127);
   pid.setMaxIOutput(30);
   pid.setSetpointRange(900);
   //int bias = std::nearbyint(0.059722*target);
   int bias = 0;
-  //bias was 38
-
   float gyroCalibrationConst = 1;
-
   if(target < 0) {
     gyroCalibrationConst = 1.01;
   } else if (target > 0) {
     gyroCalibrationConst = 1.01;
   }
-
   //reset the gyro value
   gyroOutputReal = 0;
-
   int iterations = 0;
-
+  int timeout = 0;
   while(iterations < 2000) {
      double output = pid.getOutput(gyroOutput/gyroCalibrationConst, target + bias);
      driveRightFront.move(-output);
@@ -48,17 +42,17 @@ void turnPID (double target) {
      driveLeftFront.move(output);
      driveLeftBack.move(output);
      pros::delay(10);
-     
-     if(driveRightFront.get_actual_velocity() == 0 && iterations > 30) {
-        break;
-     }
 
+     if(driveRightFront.get_actual_velocity() == 0 && iterations > 30) {
+        timeout = timeout + 10;
+        if(timeout >= 50) {
+          break;
+        }
+     }
      pros::lcd::print(0, "Gyro: %f\n", gyroOutput);
      pros::lcd::print(1, "Gyroadj : %f\n", gyroOutput / gyroCalibrationConst);
      pros::lcd::print(1, "Error : %f\n", abs(target) - abs(gyroOutput / gyroCalibrationConst));
      iterations = iterations + 10;
-
-
   }
   driveRightFront.move(0);
   driveRightBack.move(0);
@@ -66,37 +60,38 @@ void turnPID (double target) {
   driveLeftBack.move(0);
 }
 
-void turnPIDTime (double target, double time) {
-  MiniPID pid = MiniPID(0.13, 0.000, 0.9);
+void turnPIDTime (double target, double time, bool reset = true) {
+  MiniPID pid = MiniPID(0.27, 0.000, 1.8);
   pid.setOutputLimits(-127, 127);
   pid.setMaxIOutput(30);
   pid.setSetpointRange(900);
-  int bias = 38;
+  //int bias = std::nearbyint(0.059722*target);
+  int bias = 0;
+  //bias was 38
+  float gyroCalibrationConst = 1;
+  if(target < 0) {
+    gyroCalibrationConst = 1.01;
+  } else if (target > 0) {
+    gyroCalibrationConst = 1.01;
+  }
   //reset the gyro value
-  //gyro.reset();
-  gyroOutput = 0;
-
-  //double target = 900;
+  if(reset){
+    gyroOutputReal = 0;
+  }
   int iterations = 0;
-
+  int timeout = 0;
   while(iterations < time) {
-     //std::cout << driveRightFront.get_actual_velocity() << std::endl;
-     double output = pid.getOutput(gyroOutput / 1.075, target + bias);
+     double output = pid.getOutput(gyroOutput/gyroCalibrationConst, target + bias);
      driveRightFront.move(-output);
      driveRightBack.move(-output);
      driveLeftFront.move(output);
      driveLeftBack.move(output);
      pros::delay(10);
-     /*
-     if(driveRightFront.get_actual_velocity() == 0 && iterations > 30) {
-        break;
-     }
-     */
-     //pros::lcd::print(0, "Gyro: %f\n", (gyro.get()) -900);
-     //pros::lcd::print(1, "PID : %f\n", output);
+
+     pros::lcd::print(0, "Gyro: %f\n", gyroOutput);
+     pros::lcd::print(1, "Gyroadj : %f\n", gyroOutput / gyroCalibrationConst);
+     pros::lcd::print(1, "Error : %f\n", abs(target) - abs(gyroOutput / gyroCalibrationConst));
      iterations = iterations + 10;
-
-
   }
   driveRightFront.move(0);
   driveRightBack.move(0);
@@ -104,9 +99,8 @@ void turnPIDTime (double target, double time) {
   driveLeftBack.move(0);
 }
 
-void drivePID (double target, double setPointRange = 900, double rightBias = 0) {
+void drivePID (double target, double setPointRange = 900, double rightBias = 10, double sideBias = 1) {
   int leftBias = 0;
-  rightBias = 50;
 
   if (target < 0) {
      leftBias = leftBias * -1;
@@ -119,9 +113,9 @@ void drivePID (double target, double setPointRange = 900, double rightBias = 0) 
   leftPID.setSetpointRange(setPointRange);
 
   MiniPID rightPID = MiniPID(0.24, 0.000, 0.50);
-  leftPID.setOutputLimits(-127, 127);
-  leftPID.setMaxIOutput(30);
-  leftPID.setSetpointRange(setPointRange);
+  rightPID.setOutputLimits(-127, 127);
+  rightPID.setMaxIOutput(30);
+  rightPID.setSetpointRange(setPointRange);
 
 
 
@@ -145,21 +139,25 @@ void drivePID (double target, double setPointRange = 900, double rightBias = 0) 
 
   //double target = 900;
   int iterations = 0;
+  int timeout = 0;
   float leftMotorEncoderAverage;
   float rightMotorEncoderAverage;
 
-  while(iterations < 4000) {
-     leftMotorEncoderAverage = (driveLeftFront.get_position() + driveLeftBack.get_position()) / 2;
-     rightMotorEncoderAverage = (driveRightFront.get_position() + driveRightBack.get_position()) / 2;
+  while(iterations < 2500) {
+     leftMotorEncoderAverage = (driveLeftFront.get_position());// + driveLeftBack.get_position()) / 2;
+     rightMotorEncoderAverage = (driveRightFront.get_position());// + driveRightBack.get_position()) / 2;
      double leftOutput = leftPID.getOutput(leftMotorEncoderAverage, target + leftBias);
-     double rightOutput = 0.95 * rightPID.getOutput(rightMotorEncoderAverage, target + rightBias);
+     double rightOutput = sideBias * rightPID.getOutput(rightMotorEncoderAverage, target + rightBias);
      driveRightFront.move(rightOutput);
      driveRightBack.move(rightOutput);
      driveLeftFront.move(leftOutput);
      driveLeftBack.move(leftOutput);
      pros::delay(10);
      if(driveRightFront.get_actual_velocity() == 0 && iterations > 30) {
-        break;
+        timeout = timeout + 10;
+        if(timeout >= 50) {
+          break;
+        }
      }
      iterations = iterations + 10;
 
@@ -170,32 +168,72 @@ void drivePID (double target, double setPointRange = 900, double rightBias = 0) 
   std::cout << "Right Error: " << rightMotorEncoderAverage << std::endl;
 }
 
+void drivePIDTime (double target, double time, double setPointRange = 900, double rightBias = 10, double sideBias = 1) {
+  int leftBias = 0;
+
+  if (target < 0) {
+     leftBias = leftBias * -1;
+     rightBias = -10;
+  }
+
+  MiniPID leftPID = MiniPID(0.24, 0.000, 0.50);
+  leftPID.setOutputLimits(-127, 127);
+  leftPID.setMaxIOutput(30);
+  leftPID.setSetpointRange(setPointRange);
+
+  MiniPID rightPID = MiniPID(0.24, 0.000, 0.50);
+  rightPID.setOutputLimits(-127, 127);
+  rightPID.setMaxIOutput(30);
+  rightPID.setSetpointRange(setPointRange);
+
+  driveRightFront.tare_position();
+  driveRightBack.tare_position();
+  driveLeftFront.tare_position();
+  driveLeftBack.tare_position();
+
+  int iterations = 0;
+  int timeout = 0;
+  float leftMotorEncoderAverage;
+  float rightMotorEncoderAverage;
+
+  while(iterations < time) {
+     leftMotorEncoderAverage = (driveLeftFront.get_position());// + driveLeftBack.get_position()) / 2;
+     rightMotorEncoderAverage = (driveRightFront.get_position());// + driveRightBack.get_position()) / 2;
+     double leftOutput = leftPID.getOutput(leftMotorEncoderAverage, target + leftBias);
+     double rightOutput = sideBias * rightPID.getOutput(rightMotorEncoderAverage, target + rightBias);
+     driveRightFront.move(rightOutput);
+     driveRightBack.move(rightOutput);
+     driveLeftFront.move(leftOutput);
+     driveLeftBack.move(leftOutput);
+     pros::delay(10);
+     iterations = iterations + 10;
+  }
+  //pros::lcd::print(1, "PID : %f\n", motorEncoderAverage);
+  std::cout << "Left Error: " << leftMotorEncoderAverage << std::endl;
+  std::cout << "Right Error: " << rightMotorEncoderAverage << std::endl;
+}
+
 void red_front_auton() {
-  //red primary auton
-  // line up with the left side of the tile
-  drivePID(3100);
+  drivePIDTime(3000, 1700);
   intake.move(127);
   pros::delay(400);
-  drivePID(-2300);
-
-  turnPID(1800);
+  drivePIDTime(-2250, 1500);
+  turnPIDTime(1800, 1500, false);
   intake.move(0);
-  catapult.move(127);
-  catapult2.move(-127);
-  pros::delay(400);
-  catapult.move(0);
-  catapult2.move(0);
-  turnPID(900+350);
+  fired = true;
+  turnPIDTime(3100, 1000, false);
+  pros::delay(300);
   intake.move(-127);
-  drivePID(900);
-  drivePID(810, 280);
+  drivePIDTime(900, 800, 900, -60, 1);
+  drivePIDTime(890, 1500, 280, 10, 1);
   intake.move(0);
-  drivePID(-1900);
-  pros::delay(500);
-  turnPID(1400);
-  drivePID(1900);
-  turnPID(-900);
-  drivePID(4000);
+  drivePIDTime(-1700, 1300);
+  turnPIDTime(4550, 1000, false);
+  intake.move(127);
+  drivePID(1850, 1400);
+  turnPIDTime(3550, 1000, false);
+  intake.move(0);
+  drivePIDTime(3500, 5000);
 }
 void red_back_auton() {
   //red back
@@ -230,11 +268,7 @@ void red_back_auton() {
   drivePID(-335);
   turnPID(285);
   pros::delay(200);
-  catapult.move(127);
-  catapult2.move(127);
-  pros::delay(400);
-  catapult.move(0);
-  catapult2.move(0);
+  fired = true;
   turnPID(700);
   drivePID(3350);
   turnPID(900);
@@ -247,11 +281,7 @@ void blue_front_auton() {
   pros::delay(100);
   drivePID(-2700);
   intake.move(0);
-  catapult.move(127);
-  catapult2.move(-127);
-  pros::delay(400);
-  catapult.move(0);
-  catapult2.move(0);
+  fired = true;
   turnPID(600);
   intake.move(-127);
   drivePID(1250);
@@ -275,64 +305,40 @@ void blue_back_auton() {
 
 }
 void red_front_nopark_auton() {
-  drivePID(3200);
-  intake.move(-127);
-  pros::delay(100);
-  drivePID(-2400);
-  intake.move(0);
 
-  turnPID(1800);
-  catapult.move(127);
-  catapult2.move(-127);
+  drivePIDTime(3000, 1700);
+  intake.move(127);
   pros::delay(400);
-  catapult.move(0);
-  catapult2.move(0);
-
-  turnPID(900);
-  drivePID(1600);
-  turnPID(900);
-
-  driveRightFront.move(-50);
-  driveRightBack.move(-50);
-  driveLeftFront.move(-50);
-  driveLeftBack.move(-50);
-  pros::delay(800);
-  driveRightFront.move(0);
-  driveRightBack.move(0);
-  driveLeftFront.move(0);
-  driveLeftBack.move(0);
+  drivePIDTime(-2250, 1500);
+  turnPIDTime(1800, 1500, false);
+  intake.move(0);
+  fired = true;
+  pros::delay(400);
+  turnPIDTime(2635, 1000, false);
 
   intake.move(127);
+  drivePIDTime(3500, 2100, false);
+  drivePIDTime(-1700, 900);
 
-  drivePID(700);
-  drivePID(1400, 260);
+  turnPIDTime(3620, 900, false);
+  intake.move(-127);
+  drivePIDTime(600, 700, 900, -60, 1);
+  drivePIDTime(750, 900, 280, 10, 1);
   intake.move(0);
-  pros::delay(200);
-  drivePID(-1600);
-  turnPID(-975);
-  driveRightFront.move(50);
-  driveRightBack.move(50);
-  driveLeftFront.move(50);
-  driveLeftBack.move(50);
-  pros::delay(2000);
-  driveRightFront.move(0);
-  driveRightBack.move(0);
-  driveLeftFront.move(0);
-  driveLeftBack.move(0);
 
+  turnPIDTime(2340, 1200, false);
+  fired = true;
+  pros::delay(400);
 
 }
+
 void blue_front_nopark_auton() {
   drivePID(3200);
   intake.move(-127);
   pros::delay(100);
   drivePID(-2810);
   intake.move(0);
-  catapult.move(127);
-  catapult2.move(-127);
-  pros::delay(400);
-  catapult.move(0);
-  catapult2.move(0);
+  fired = true;
 
   turnPID(900);
   drivePID(1600);
@@ -373,11 +379,7 @@ void red_front_mid_nopark_auton() {
   intake.move(0);
 
   turnPID(1800);
-  catapult.move(127);
-  catapult2.move(-127);
-  pros::delay(400);
-  catapult.move(0);
-  catapult2.move(0);
+  fired = true;
 
   turnPID(900);
   drivePID(1600);
@@ -414,11 +416,7 @@ void prog_skills() {
   intake.move(0);
 
   turnPID(1800);
-  catapult.move(127);
-  catapult2.move(-127);
-  pros::delay(400);
-  catapult.move(0);
-  catapult2.move(0);
+  fired = true;
   turnPID(900+420);
   intake.move(127);
   drivePID(1100);

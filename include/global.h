@@ -14,7 +14,7 @@ extern pros::Motor intake;
 extern pros::Motor catapult;
 extern pros::Motor catapult2;
 
-
+extern bool fired;
 
 extern double gyroCurrent;
 extern double gyroLast;
