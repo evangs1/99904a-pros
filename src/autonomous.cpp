@@ -60,8 +60,8 @@ void turnPID (double target) {
   driveLeftBack.move(0);
 }
 
-void turnPIDTime (double target, double time, bool reset = true) {
-  MiniPID pid = MiniPID(0.27, 0.000, 1.8);
+void turnPIDTime (double target, double time, bool reset = true, double i = 0) {
+  MiniPID pid = MiniPID(0.27, i, 1.8);
   pid.setOutputLimits(-127, 127);
   pid.setMaxIOutput(30);
   pid.setSetpointRange(900);
@@ -70,9 +70,9 @@ void turnPIDTime (double target, double time, bool reset = true) {
   //bias was 38
   float gyroCalibrationConst = 1;
   if(target < 0) {
-    gyroCalibrationConst = 1.01;
+    gyroCalibrationConst = 1.066;
   } else if (target > 0) {
-    gyroCalibrationConst = 1.01;
+    gyroCalibrationConst = 1.061;
   }
   //reset the gyro value
   if(reset){
@@ -221,91 +221,114 @@ void red_front_auton() {
   turnPIDTime(1800, 1500, false);
   intake.move(0);
   fired = true;
+  pros::delay(400);
   turnPIDTime(3100, 1000, false);
   pros::delay(300);
   intake.move(-127);
   drivePIDTime(900, 800, 900, -60, 1);
-  drivePIDTime(890, 1500, 280, 10, 1);
+  drivePIDTime(900, 1500, 280, 10, 1);
   intake.move(0);
-  drivePIDTime(-1700, 1300);
+  drivePIDTime(-1500, 1200);
   turnPIDTime(4550, 1000, false);
   intake.move(127);
-  drivePID(1850, 1400);
-  turnPIDTime(3550, 1000, false);
+  drivePID(1850, 1100);
+  turnPIDTime(3550, 900, false);
   intake.move(0);
   drivePIDTime(3500, 5000);
 }
 void red_back_auton() {
   //red back
-  drivePID(3100);
-  pros::delay(2000);
-  drivePID(-3100);
-  pros::delay(2000);
-  turnPID(3600);
-  pros::delay(2000);
-  drivePID(1000);
-  turnPID(1800);
-  drivePID(1000);
-  pros::delay(2000);
-  return;
-  drivePID(3200);
-  intake.move(-127);
-  pros::delay(300);
-  drivePID(-500);
-  turnPID(-1800-400);
+
+  drivePIDTime(3100, 1700);
+  intake.move(127);
+  pros::delay(400);
+  drivePIDTime(-300, 500);
+  turnPIDTime(-900, 1000, false);
   intake.move(0);
-  drivePID(2300);
-  turnPID(400);
-  driveRightFront.move(50);
-  driveRightBack.move(50);
-  driveLeftFront.move(50);
-  driveLeftBack.move(50);
-  pros::delay(1400);
+  drivePIDTime(3000, 2500);
+
+  turnPIDTime(-900, 800, false, 0.003);
+  drivePIDTime(1600, 1700, 270);
+  intake.move(127);
+  turnPIDTime(-1800, 1000, false);
+  strafe.move(-127);
+  driveRightFront.move(10);
+  driveRightBack.move(10);
+  driveLeftFront.move(10);
+  driveLeftBack.move(10);
+  pros::delay(1500);
+  strafe.move(0);
   driveRightFront.move(0);
   driveRightBack.move(0);
   driveLeftFront.move(0);
   driveLeftBack.move(0);
-  drivePID(-335);
-  turnPID(285);
-  pros::delay(200);
+
+  turnPIDTime(190, 700, true, 0.003);
   fired = true;
-  turnPID(700);
-  drivePID(3350);
-  turnPID(900);
-  drivePID(3200);
+  pros::delay(400);
+  turnPIDTime(-1100, 1000);
+  drivePIDTime(2600, 2500);
 }
 void blue_front_auton() {
   //blue primary auton
-  drivePID(3100);
+  drivePIDTime(3000, 1700);
   intake.move(127);
-  pros::delay(100);
-  drivePID(-2700);
+  pros::delay(400);
+  drivePIDTime(-2300, 1500);
+  turnPIDTime(0, 800, false, 0.003);
   intake.move(0);
   fired = true;
-  turnPID(600);
+  pros::delay(400);
+  turnPIDTime(600, 1000, false);
+  pros::delay(300);
   intake.move(-127);
-  drivePID(1250);
-  drivePID(800, 250);
+  drivePIDTime(1000, 800, 900, 10, 1);
+  drivePIDTime(1000, 1500, 280, 10, 1);
   intake.move(0);
-  drivePID(-1550);
-  turnPID(-1200);
-  drivePID(1750);
-  turnPID(900);
-  drivePID(4000);
+  drivePIDTime(-1570, 1200);
+  turnPIDTime(-900, 1000, false);
+  intake.move(127);
+  drivePID(1850, 1100);
+  turnPIDTime(0, 900, false);
+  intake.move(0);
+  drivePIDTime(3500, 5000);
 }
 void blue_back_auton() {
   //Blue back
-
-  drivePID(3100);
+  drivePIDTime(3100, 1700);
   intake.move(127);
-  pros::delay(300);
-  drivePID(-500);
+  pros::delay(400);
+  drivePIDTime(-400, 500);
+  turnPIDTime(900, 1000, false);
   intake.move(0);
+  drivePIDTime(3000, 2500);
+
+  turnPIDTime(900, 800, false, 0.003);
+  drivePIDTime(1600, 1700, 270);
+  intake.move(127);
+  turnPIDTime(0, 1000, false);
+  strafe.move(-127);
+  driveRightFront.move(10);
+  driveRightBack.move(10);
+  driveLeftFront.move(10);
+  driveLeftBack.move(10);
+  pros::delay(1500);
+  strafe.move(0);
+  driveRightFront.move(0);
+  driveRightBack.move(0);
+  driveLeftFront.move(0);
+  driveLeftBack.move(0);
+
+  turnPIDTime(-140, 700, true, 0.003);
+  fired = true;
+  pros::delay(400);
+  intake.move(0);
+  turnPIDTime(-1000, 1000);
+  drivePIDTime(2600, 2500);
 
 
 }
 void red_front_nopark_auton() {
-
   drivePIDTime(3000, 1700);
   intake.move(127);
   pros::delay(400);
@@ -331,44 +354,31 @@ void red_front_nopark_auton() {
   pros::delay(400);
 
 }
-
 void blue_front_nopark_auton() {
-  drivePID(3200);
-  intake.move(-127);
-  pros::delay(100);
-  drivePID(-2810);
+  drivePIDTime(3000, 1700);
+  intake.move(127);
+  pros::delay(400);
+  drivePIDTime(-2370, 1500);
+  turnPIDTime(0, 800, false, 0.003);
   intake.move(0);
   fired = true;
-
-  turnPID(900);
-  drivePID(1600);
-  turnPID(-900);
-  driveRightFront.move(-50);
-  driveRightBack.move(-50);
-  driveLeftFront.move(-50);
-  driveLeftBack.move(-50);
-  pros::delay(700);
-  driveRightFront.move(0);
-  driveRightBack.move(0);
-  driveLeftFront.move(0);
-  driveLeftBack.move(0);
+  pros::delay(400);
+  drivePIDTime(-150, 500);
+  turnPIDTime(920, 1000, false);
 
   intake.move(127);
-  drivePID(700);
-  drivePID(1400, 250);
+  drivePIDTime(3800, 2100, false);
+  drivePIDTime(-1850, 900);
+
+  turnPIDTime(0, 900, false);
+  intake.move(-127);
+  drivePIDTime(600, 700, 900, 10, 1);
+  drivePIDTime(820, 900, 280, 10, 1);
   intake.move(0);
-  pros::delay(200);
-  drivePID(-1465);
-  turnPID(1010);
-  driveRightFront.move(50);
-  driveRightBack.move(50);
-  driveLeftFront.move(50);
-  driveLeftBack.move(50);
-  pros::delay(2000);
-  driveRightFront.move(0);
-  driveRightBack.move(0);
-  driveLeftFront.move(0);
-  driveLeftBack.move(0);
+
+  turnPIDTime(-520, 1200, false);
+  fired = true;
+  pros::delay(400);
 
 }
 void red_front_mid_nopark_auton() {
